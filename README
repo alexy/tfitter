@@ -1,0 +1,12 @@
+The Tfitter project aims to crawl Twitter with Scala, 
+for subsequent analysis of the contents and the conversations 
+in the context of Machine Learning and Natural Language Processing.
+
+The originator, Alexy Khrabrov, is a researcher at Thayer School of Engineering at Dartmouth.
+
+http://www.khrabrov.net/ points to Alexy's personal and academic pages.
+See Alexy's Scala blog,
+
+http://la.scala.la/
+
+for Scala discoveries in the making of Tfitter.
