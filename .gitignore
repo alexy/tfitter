@@ -1,1 +1,3 @@
 target
+.pom.yml
+src/main/filters/filter.properties
