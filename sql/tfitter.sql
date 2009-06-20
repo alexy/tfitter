@@ -1,4 +1,5 @@
-create table trange (
+-- 'ser tweet range
+create table strange (
   uid integer not null primary key, 
   first bigint not null, 
   last bigint not null, 
@@ -6,18 +7,30 @@ create table trange (
   declared integer not null,
   flags integer not null);
 
-create table username (
-  uid integer not null primary key,
-  name varchar(32) -- NB check real maximum
-  )
-  
 create table tweet (
   tid bigint not null primary key,
   uid integer not null,
   reply_tid bigint,
   reply_uid integer,
   created_at date not null,
-    
+  
+create table user (
+  uid integer not null primary key,
+  name varchar(32) -- NB check real maximum
+  screen_name varchar() not null,
+  statuses_count integer,
+  time date,
+  location varchar(),
+  utc_offset byte
+  )
+  
+create table twit (
+  tid bigint not null,
+  time: DateTime,
+  replyTwit: Option[TwitID],
+  replyUser: Option[UserID]
+  )
+
 -- Tweet
 -- user
 -- text

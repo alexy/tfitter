@@ -1,17 +1,28 @@
 package com.tfitter
 
 import java.io.PrintStream
+import com.twitter.commons.{Json,JsonException}
 
-import com.twitter.commons.Json
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+
+import com.tfitter.db.types._
+import com.tfitter.db.{User,Twit}
 
 object Status {
+  
   case class BadStatus(reason: String) extends Exception(reason)
   
   def main(args: Array[String]){
     Console.setOut(new PrintStream(Console.out, true, "UTF8"))
+    // what do we do for stderr?
+    // Console.setErr(new PrintStream(Console.err, true, "UTF8"))
+
+    System.err.println("this is stderr")
+    Console.println("this is console")
     
     // for extracting the time
-    val dateTimeFmt = org.joda.time.format.DateTimeFormat.forPattern("EEE MMM dd kk:mm:ss Z YYYY")
+    val dateTimeFmt = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z YYYY")
     
     def extractField[T](m: Map[String,Any], field: String, whose: String)
       (implicit manifest: scala.reflect.Manifest[T]): T = 
@@ -28,81 +39,64 @@ object Status {
         case _ => throw BadStatus(whose+" has no "+field)
       }
           
-    def showOption[T](x: Option[T]): String = x match {
-      case Some(s) => s.toString
+    def showOption[T](prefix:String = "", x: Option[T]): String = x match {
+      case Some(s) => prefix+s.toString
       case _ => ""
+    }
+    
+    def anyToMap: Any => Map[String,Any] = {
+      case m: Map[_,_] => try { m.asInstanceOf[Map[String,Any]] }
+        catch { case _: ClassCastException => throw BadStatus("data is not a Map[String,Any]") }
+          // we need continue here and below, not bail on error
+      case _ => throw BadStatus("Not a Twitter status as Map[_,_]")
     }
     
     for (line <- scala.io.Source.fromFile(args(0),"UTF-8").getLines) {
       try {
-        val tweet = Json.parse(line) match {
-          case m: Map[String,Any] => m
-          // we need continue here and below, not bail on error
-          case _ => throw BadStatus("Not a Twitter status in JSON format:"+line)
-        }
+        val twitAny = try { Json.parse(line) } catch {
+          case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason) }
+        val twit = anyToMap(twitAny)
         
-        // user 
-        val user = {tweet.get("user") match {
+        val userAny = twit.get("user") match {
           case Some(x) => x
-          case _ => error("no user data inside tweet")
-        }} match {
-          case m: Map[String,Any] => m
-          case _ => throw BadStatus("user data is not a map")
-        }
-        
-        // user name
-        val name: String = extractField(user,"name","user")
-        
-        // user screen_name
-        val screen_name: String = extractField(user,"screen_name","user")
-        
-        // tweet time
-        val created_at: String = extractField(tweet,"created_at","tweet")
-        val dt = dateTimeFmt.parseDateTime(created_at)
-        
+          case _ => error("no user data inside twit")
+        } // ->: anyToMap
+        val user = anyToMap(userAny)
+
+        // user
         val uid: Int = extractField(user,"id","user")
-      
-        // tid
-        val tid: Long = extractField(tweet,"id","tweet")
-      
-        // reply_tid
-        val reply_tid: Option[Long] = extractNullableField(tweet,"in_reply_to_status_id","tweet")
+        val name: String = extractField(user,"name","user")
+        val screenName: String = extractField(user,"screen_name","user")
+        val statusesCount: Int = extractField(user,"statuses_count","user")
+        val userCreatedAt: String = extractField(user,"created_at","user")
+        val userTime: DateTime = try { dateTimeFmt.parseDateTime(userCreatedAt) }
+          catch { case _: IllegalArgumentException => throw BadStatus("cannot parse user time") }
+        val location: String = extractField(user,"location","user")
+        // can't seem to declare it :UTCOffset right away: / gives type error!
+        // also have to give explicit type parameter, otherwise were getting,
+        // error: value / is not a member of Nothing
+        val utcOffsetInt: Int = extractField[Int](user,"utc_offset","user") / 3600
+        val utcOffset: UTCOffset = utcOffsetInt.asInstanceOf[UTCOffset]
         
-        // reply_uid
-        val reply_uid: Option[Int] = extractNullableField(tweet,"in_reply_to_user_id","tweet")
-
-        // fails on empty:
-        // bad status:tweet in_reply_to_status_id is not a java.lang.String
-        // val reply_uid: Option[Int] =
-        //    extractField[String](tweet,"in_reply_to_user_id","tweet") match {
-        //    case "" => None
-        //    case s => try { Some(s.toInt) } catch {
-        //      case _: NumberFormatException => throw BadStatus(
-        //        "in_reply_to_user_id is a non-empty non-number "+s)
-        //    }
-        // }
-
-        // this works for non-empty string, but raises error during runtime for empty one:
-        // bad status:tweet in_reply_to_status_id is not a scala.runtime.Nothing$
-        // val reply_uid: Option[Int] = (extractField(tweet,"in_reply_to_user_id","tweet"): Any) match {
-        //   case i: Int => Some(i)
-        //   case _ => None
-        // }
-
-        // this works with out own BadStatus exception overhead on empty
-        // val reply_uid: Option[Int] = try { 
-        //   val r: Int = extractField(tweet,"in_reply_to_user_id","tweet")
-        //   Some(r) }
-        //   catch {
-        //    // com.tfitter.Status$BadStatus: tweet in_reply_to_user_id is not a scala.runtime.Nothing$
-        //    case e => /*println(e);*/ None
-        //   }
+        // twit
+        val tid: Long = extractField(twit,"id","twit")
+        val twitCreatedAt: String = extractField(twit,"created_at","twit")
+        val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
+        catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
+        val replyTwit: Option[Long] = extractNullableField(twit,"in_reply_to_status_id","twit")
+        val replyUser: Option[Int] = extractNullableField(twit,"in_reply_to_user_id","twit")
+      
         
-        println(name+" "+dt+" ["+created_at+"] "+"tid="+tid+", uid="+uid+
-          ", reply_uid="+showOption(reply_uid)+", reply_tid="+showOption(reply_tid))
+        println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
+          showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
+          
+        val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
+        val tRes = Twit(tid, twitTime, replyTwit, replyUser)
+        
+        (uRes,tRes)
       }
       catch {
-        case BadStatus(reason) => println("bad status:"+reason+" "+line)
+        case BadStatus(reason) => System.err.println("*** BAD STATUS:"+reason+" "+line)
       }
     }
   }

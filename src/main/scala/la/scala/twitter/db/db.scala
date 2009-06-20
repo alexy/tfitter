@@ -1,35 +1,57 @@
-package la.scala.twitter.db
+package com.tfitter.db
 
-abstract trait TwitDB {
+import org.joda.time.DateTime
+
+object types {
   type UserID = Int
   type TwitID = Long
   type TwitCount = Int
   type UserFlags = Int
+  type UTCOffset = Byte
+}
+import types._
+
+case class User (  
+  uid: UserID,
+  name: String,
+  screenName: String,
+  statusesCount: Int,
+  time: DateTime,
+  location: String,
+  utcOffset: UTCOffset
+  )
+  
+case class Twit (
+  tid: TwitID,
+  time: DateTime,
+  replyTwit: Option[TwitID],
+  replyUser: Option[UserID]
+  )
+
+case class TwitRange (
+  first: TwitID,
+  last:  TwitID,
+  total: TwitCount
+)
+
+// User's twitter range, actual, declared, and with flags
+case class UserTwitRange (
+  range:       TwitRange,
+  declared:    TwitCount,
+  flags:       Int
+)
+
+// moving either range's end means 
+// also adjusting the count
+case class AdjustRange (
+  endpoint: TwitID, 
+  total: TwitCount
+)
+
+abstract trait TwitDB {
   
   class DBError extends Exception
   
-  // need case here and below
-  // to make parameters publicly dot.accessible!
-  case class TwitRange (
-    first: TwitID,
-    last:  TwitID,
-    total: TwitCount
-  )
-  
-  // User's twitter range, actual, declared, and with flags
-  case class UTRange (
-    range:       TwitRange,
-    declared:    TwitCount,
-    flags:       Int
-  )
-
-  // moving either range's end means 
-  // also adjusting the count
-  case class AdjustRange (
-    endpoint: TwitID, 
-    total: TwitCount
-  )
-
   // could replace object by a class with parameter UserID
   // and create short-lived objects per user
 
@@ -39,7 +61,7 @@ abstract trait TwitDB {
   // and the caret pointing to UserPG...
   // can either cut the params here or there?
   
-  abstract class User(uid: UserID) {
+  abstract class UserDB(uid: UserID) {
     
     // flags for the range status
     // we structure them so that `good` cases are all 0
@@ -47,8 +69,8 @@ abstract trait TwitDB {
     val Seq(retry, needsPast, pastUnreachable) = (0 to 2).map(1 << _)
           
     // set/get user range as a whole
-    def uRange_=(r: UTRange): Unit
-    def uRange: Option[UTRange]
+    def uRange_=(r: UserTwitRange): Unit
+    def uRange: Option[UserTwitRange]
     def range: Option[TwitRange]
   
     // adjust range
@@ -85,13 +107,7 @@ abstract trait TwitDB {
     // def retryUser_=(flag: Boolean) :Unit
   }
 
-  case class Twit (
-    uid: UserID,
-    tid: TwitID,
-    text: String
-    )
-    
-  class Duplicate(tid: TwitID) extends DBError
+  case class Duplicate(tid: TwitID) extends DBError
   
   /*
   def twitPut(t: Twit): Unit // can raise Duplicate

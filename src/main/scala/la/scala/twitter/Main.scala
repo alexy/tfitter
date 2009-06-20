@@ -1,8 +1,8 @@
 package com.tfitter
 
 import org.talkingpuffin.twitter._
-import la.scala.twitter.db._
-import _root_.scala.io._
+import com.tfitter.db._
+import scala.io._
 
 object Main {
   // Access would have to be compiled after filtering,

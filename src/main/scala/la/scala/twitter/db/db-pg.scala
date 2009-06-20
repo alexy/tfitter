@@ -1,11 +1,12 @@
-package la.scala.twitter.db
-
-import java.sql.{DriverManager, Connection, ResultSet, PreparedStatement, Statement, Date}
-import DriverManager.{getConnection => connect}
+package com.tfitter.db
 
 import la.scala.util.FunctionNotation._
 
 class TwitPG(jdbcURL: String, user: String, pwd: String, rangeTable: String) extends TwitDB {
+    import types._
+    
+    import java.sql.{DriverManager, Connection, ResultSet, PreparedStatement, Statement, Date}
+    import DriverManager.{getConnection => connect}
 
     val rtUser     = "uid"
     val rtFirst    = "first"
@@ -102,25 +103,25 @@ class TwitPG(jdbcURL: String, user: String, pwd: String, rangeTable: String) ext
     // perhaps we should make deStream into an implicit for the selects below,
     // even back in RichSQL?  Ask @n8han! :)
     
-    case class UserPG(uid: UserID) extends User(uid: UserID) {
+    case class UserPG(uid: UserID) extends UserDB(uid: UserID) {
 
-      def uRange_=(r: UTRange): Unit =
+      def uRange_=(r: UserTwitRange): Unit =
         insertRangeFullSt << uid << 
           r.range.first << r.range.last << r.range.total <<
           r.declared << r.flags <<!
       
       /* -- perhaps this original is simpler to follow, and not much longer either:
-      def range: Option[UTRange] = {
-        val vs = selectRangeFullSt << uid <<! { rs => UTRange(TwitRange(rs,rs,rs),rs,rs) }
+      def range: Option[UserTwitRange] = {
+        val vs = selectRangeFullSt << uid <<! { rs => UserTwitRange(TwitRange(rs,rs,rs),rs,rs) }
         vs match { case Stream(x) => Some(x); case _ => None }
       }
       */
        
-      def uRange: Option[UTRange] = {
+      def uRange: Option[UserTwitRange] = {
         println(selectRangeFullSt)
         // NBS would love to jigger precedences to get rid of enclosing ()
-        (selectRangeFullSt << uid <<! { rs => UTRange(TwitRange(rs,rs,rs),rs,rs) }) ->:     
-        deStream[UTRange]        
+        (selectRangeFullSt << uid <<! { rs => UserTwitRange(TwitRange(rs,rs,rs),rs,rs) }) ->:     
+        deStream[UserTwitRange]        
       }
       
       def range: Option[TwitRange] =
@@ -178,7 +179,7 @@ class TwitPG(jdbcURL: String, user: String, pwd: String, rangeTable: String) ext
       
       val u1 = UserPG(1)
       
-      u1.uRange = UTRange(TwitRange(8,23,4),4,0)
+      u1.uRange = UserTwitRange(TwitRange(8,23,4),4,0)
       
       val ur = u1.uRange
       println(ur)
