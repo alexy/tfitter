@@ -15,6 +15,7 @@ pluginRepositories:
   - { name: twdata.org Maven 2 Repository, url: "http://twdata-m2-repository.googlecode.com/svn/", id: twdata-m2-repository }
 dependencies:
   - { groupId: org.scala-lang, artifactId: scala-library, version: "${scala.version}" }
+  - { groupId: org.scala-lang, artifactId: scala-compiler, version: "${scala.version}" }
   - { groupId: org.talkingpuffin, artifactId: twitter-api, version: 0.65 }
   - { groupId: com.twitter, artifactId: scala-json, version: 1.0 }
   - { groupId: joda-time, artifactId: joda-time, version: 1.6 }
@@ -28,7 +29,6 @@ build:
   filters: [ src/main/filters/filter.properties ]
   resources:
     - { directory: src/main/resources, filtering: true }
-    - { directory: src/main/scala/la/scala/twitter/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
       version: 2.11-SNAPSHOT
@@ -40,8 +40,8 @@ build:
         jvmArgs: [ -Xmx128m, -Xss2m, -Dfile.encoding=UTF-8 ]
         excludes: [ "**/drafts/*.*" ]
         launchers:
-          - { mainClass: la.scala.twitter.Main, id: go1 }
           - { mainClass: com.tfitter.Status, id: st1 }
+          - { mainClass: com.tfitter.Main, id: go1 }
     - artifactId: maven-compiler-plugin
       groupId: org.apache.maven.plugins
       configuration:

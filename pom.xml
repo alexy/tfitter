@@ -39,6 +39,11 @@
             <version>${scala.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.talkingpuffin</groupId>
             <artifactId>twitter-api</artifactId>
             <version>0.65</version>
@@ -82,10 +87,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
-            <resource>
-                <directory>src/main/scala/la/scala/twitter/resources</directory>
-                <filtering>true</filtering>
-            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -116,12 +117,12 @@
                     </excludes>
                     <launchers>
                         <launcher>
-                            <mainClass>la.scala.twitter.Main</mainClass>
-                            <id>go1</id>
-                        </launcher>
-                        <launcher>
                             <mainClass>com.tfitter.Status</mainClass>
                             <id>st1</id>
+                        </launcher>
+                        <launcher>
+                            <mainClass>com.tfitter.Main</mainClass>
+                            <id>go1</id>
                         </launcher>
                     </launchers>
                 </configuration>

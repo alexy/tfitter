@@ -1,5 +1,6 @@
 package com.tfitter
 
+import System.err
 import java.io.PrintStream
 import com.twitter.commons.{Json,JsonException}
 
@@ -14,12 +15,16 @@ object Status {
   case class BadStatus(reason: String) extends Exception(reason)
   
   def main(args: Array[String]){
+    
+    // make this a parameter:
+    val showingProgress = true
+    
     Console.setOut(new PrintStream(Console.out, true, "UTF8"))
     // what do we do for stderr?
     // Console.setErr(new PrintStream(Console.err, true, "UTF8"))
 
-    System.err.println("this is stderr")
-    Console.println("this is console")
+    err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor")
+    // Console.println("this is console")
     
     // for extracting the time
     val dateTimeFmt = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z YYYY")
@@ -39,11 +44,18 @@ object Status {
         case _ => throw BadStatus(whose+" has no "+field)
       }
           
-    def showOption[T](prefix:String = "", x: Option[T]): String = x match {
+    def showOption[T](prefix: String, x: Option[T]): String = x match {
       case Some(s) => prefix+s.toString
       case _ => ""
-    }
+    }    
     
+    // // anyToMap without cast, but with erasure warning
+    // def anyToMap: Any => Map[String,Any] = {
+    //   case m: Map[String,Any] => m
+    //   case _ => throw BadStatus("anyToMap: not a Map[String,Any]")
+    // }
+
+    // anyToMap with the cast, but without the erasure warning
     def anyToMap: Any => Map[String,Any] = {
       case m: Map[_,_] => try { m.asInstanceOf[Map[String,Any]] }
         catch { case _: ClassCastException => throw BadStatus("data is not a Map[String,Any]") }
@@ -51,20 +63,60 @@ object Status {
       case _ => throw BadStatus("Not a Twitter status as Map[_,_]")
     }
     
-    for (line <- scala.io.Source.fromFile(args(0),"UTF-8").getLines) {
+    
+    // var lineNumber = 0
+    // for (li <- scala.io.Source.fromFile(args(0),"UTF-8").getLines) {
+    for ((li,lineNumber) <- scala.io.Source.fromFile(args(0),"UTF-8").getLines.zipWithIndex) {
       try {
-        val twitAny = try { Json.parse(line) } catch {
-          case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason) }
-        val twit = anyToMap(twitAny)
+        // lineNumber += 1
+        // Twitter forgot to scrub ^? in some user's location/description,
+        // see status 2174151307
+        // entering chars by code, equivalent methods:
+        // "\u007f"
+        // 127.toChar.toString
+        val line = li.replaceAll("\u007f", "")
         
-        val userAny = twit.get("user") match {
-          case Some(x) => x
-          case _ => error("no user data inside twit")
-        } // ->: anyToMap
-        val user = anyToMap(userAny)
+        val parsed = try { Json.parse(line) } catch {
+          // case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason)
+          case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason) 
+        }
+        
+        // twit/user extraction, version #A
+        // -- direct matching with erasure
+        //
+        // val twit = parsed match {
+        //   case m: Map[String, Any] => m
+        //   case _ => throw BadStatus("user is not a Map[String,Any]")
+        // }
+        // 
+        // val user = { twit.get("user") match {
+        //   case Some(x) => x
+        //   case _ => throw BadStatus("no user data inside twit")          
+        // }} match {
+        //   case m: Map[String, Any] => m
+        //   case _ => throw BadStatus("user is not a Map[String,Any]")
+        // }
 
+        // user extraction, version #B        
+        // -- with userAny, cast instead of anyToMap
+        //
+        // val userAny = twit.get("user") getOrElse throw BadStatus("no user data inside twit")
+        // val user = try { user.asInstanceOf[Map[String,Any]] } catch {
+        //   case _: ClassCastError => throw BadStatus("user is not a Map[String,Any]")
+        // }
+
+        // this was the only meat line in speed test, instead of all extractField's below
+        // val uid = user.get("id") getOrElse { throw BadStatus("user has no uid") }
+        // println(uid)
+        
+        // version with userAny, anyToMap
+        val twit = anyToMap(parsed)
+        val userAny = twit.get("user") getOrElse { throw BadStatus("no user data inside twit") }
+        // ->: anyToMap
+        val user = anyToMap(userAny)
+        
         // user
-        val uid: Int = extractField(user,"id","user")
+        val uid: Int = extractField(user,"id","user")        
         val name: String = extractField(user,"name","user")
         val screenName: String = extractField(user,"screen_name","user")
         val statusesCount: Int = extractField(user,"statuses_count","user")
@@ -89,15 +141,20 @@ object Status {
         
         println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
           showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
-          
-        val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
-        val tRes = Twit(tid, twitTime, replyTwit, replyUser)
         
-        (uRes,tRes)
+        // val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
+        // val tRes = Twit(tid, twitTime, replyTwit, replyUser)
+        // (uRes,tRes)
+
+        if (showingProgress && lineNumber % 10000 == 0) err.print('.')
+
       }
       catch {
-        case BadStatus(reason) => System.err.println("*** BAD STATUS:"+reason+" "+line)
+        case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+li)
       }
     }
+    err.println
   }
 }
+
+// val line = scala.io.Source.fromFile("/s/data/twitter/samples/2174151307.json").getLines.next

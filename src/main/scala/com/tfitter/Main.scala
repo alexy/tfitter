@@ -1,6 +1,6 @@
 package com.tfitter
 
-import org.talkingpuffin.twitter._
+// import org.talkingpuffin.twitter._
 import com.tfitter.db._
 import scala.io._
 
@@ -9,11 +9,11 @@ object Main {
   // http://la.scala.la/post/124159629/encrypting-and-replacing-passwords-with-maven
   // import Access.{twitterUser, twitterPassword}
   
-  def queryTwitter(twitterUser: String, twitterPassword: String) {
-    val auth = TwitterSession(twitterUser,twitterPassword)
-    val tweets = auth.getUserTimeline(twitterUser)
-    for (t <- tweets) println(t)
-  }
+  // def queryTwitter(twitterUser: String, twitterPassword: String) {
+  //   val auth = TwitterSession(twitterUser,twitterPassword)
+  //   val tweets = auth.getUserTimeline(twitterUser)
+  //   for (t <- tweets) println(t)
+  // }
   
   def doPGtest {
     val tdb = new TwitPG("jdbc:postgresql:twitter","alexyk","","testRange")
