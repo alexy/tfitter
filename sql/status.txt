@@ -1,0 +1,27 @@
+user:
+
+notifications   null
+profile_text_color      000000
+profile_sidebar_fill_color      ffffff
+created_at      Sun Mar 08 04:19:10 +0000 2009
+profile_background_tile true
+id      23275269
+following       null
+profile_image_url       http://s3.amazonaws.com/twitter_production/profile_images/256173035/blu_normal.jpg
+url     http://www.whoisgmalone.com
+screen_name     BluDivisionMsc
+location        Everywhere!
+friends_count   1800
+name    Blu Division Music
+utc_offset      -28800
+verified_profile        false
+statuses_count  158
+time_zone       Pacific Time (US & Canada)
+favourites_count        0
+profile_background_image_url    http://s3.amazonaws.com/twitter_production/profile_background_images/9375795/GlassesFinal-1.jpg
+profile_sidebar_border_color    929a8d
+followers_count 1592
+description     Beach Cruiser by Glasses Malone in stores August 18,2009 http://www.whoisgmalone.com
+profile_link_color      173ee8
+profile_background_color        9AE4E8
+protected       false

@@ -1,3 +1,4 @@
+.scala_dependencies
 target
 .pom.yml
 src/main/filters/filter.properties
