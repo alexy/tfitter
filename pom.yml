@@ -9,10 +9,12 @@ properties:
   scala.version: 2.8.0-SNAPSHOT
   main.class: com.tfitter.Status
 repositories:
-  - { name: Scala-Tools Maven2 Repository, url: "http://scala-tools.org/repo-releases", id: scala-tools.org }
+  - { id: scala-tools.org, name: Scala-Tools Maven2 Release Repository, url: "http://scala-tools.org/repo-releases" }
+  - { id: snapshots.scala-tools.org, name: Scala-Tools Maven2 Snapshot Repository, url: "http://scala-tools.org/repo-snapshots" }
 pluginRepositories:
-  - { name: Scala-Tools Maven2 Repository, url: "http://scala-tools.org/repo-releases", id: scala-tools.org }
-  - { name: twdata.org Maven 2 Repository, url: "http://twdata-m2-repository.googlecode.com/svn/", id: twdata-m2-repository }
+  - { id: scala-tools.org, name: Scala-Tools Maven2 Release Repository, url: "http://scala-tools.org/repo-releases" }
+  - { id: snapshots.scala-tools.org, name: Scala-Tools Maven2 Snapshot Repository, url: "http://scala-tools.org/repo-snapshots" }
+  - { id: twdata-m2-repository, name: twdata.org Maven 2 Repository, url: "http://twdata-m2-repository.googlecode.com/svn/" }
 dependencies:
   - { groupId: org.scala-lang, artifactId: scala-library, version: "${scala.version}" }
   - { groupId: org.scala-lang, artifactId: scala-compiler, version: "${scala.version}" }
@@ -31,7 +33,7 @@ build:
     - { directory: src/main/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
-      version: 2.11-SNAPSHOT
+      version: 2.11
       executions:
         - goals: [ compile, testCompile ]
       groupId: org.scala-tools
