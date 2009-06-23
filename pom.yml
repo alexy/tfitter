@@ -18,7 +18,6 @@ pluginRepositories:
 dependencies:
   - { groupId: org.scala-lang, artifactId: scala-library, version: "${scala.version}" }
   - { groupId: org.scala-lang, artifactId: scala-compiler, version: "${scala.version}" }
-  - { groupId: org.talkingpuffin, artifactId: twitter-api, version: 0.65 }
   - { groupId: com.twitter, artifactId: scala-json, version: 1.0 }
   - { groupId: joda-time, artifactId: joda-time, version: 1.6 }
   - { groupId: la.scala.sql, artifactId: rich, version: 1.0 }
