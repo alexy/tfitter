@@ -14,9 +14,9 @@ object Status {
   
   case class BadStatus(reason: String) extends Exception(reason)
    
-  sealed abstract case class ParserMessage()
+  sealed abstract class ParserMessage()
   case class Parse(s: String) extends ParserMessage
-  case class EndOfInput() // extends ParserMessage // caused class not found exception!
+  case object EndOfInput extends ParserMessage // caused class not found exception!
 
   // this should go into la.scala.util        
   def showOption[T](prefix: String, x: Option[T]): String = x match {
@@ -38,7 +38,7 @@ object Status {
               // err.println("got request from actor "+a)
               if (!lines.hasNext) {
                 err.println("end of input, informing parser "+a.id)
-                a ! EndOfInput()
+                a ! EndOfInput
                 countDown -= 1
                 if (countDown == 0) {
                   err.println("ReadLines exiting")
@@ -51,7 +51,7 @@ object Status {
                   if (progress && lineNumber % 10000 == 0) err.print('.')
                 } catch {
                   case _ => err.println("cannot get line")
-                  a ! EndOfInput()
+                  a ! EndOfInput
                 }
               }
             }
@@ -157,17 +157,16 @@ object Status {
 
               // do we need throttling here?
               // err.println("parser "+id+" ["+self+"] sends its inserter "+inserter.id+" ["+inserter+"] twit "+tRes.tid)
-              inserter ! UserTwit(uRes,tRes)
-              
-              readLines ! self
+              inserter ! UserTwit(uRes,tRes)              
             }
             catch {
               case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+s)
             }
-            // finally {
-            // }
-          case EndOfInput() => { 
-            inserter ! EndOfInput()
+            finally {
+              readLines ! self
+            }
+          case EndOfInput => { 
+            inserter ! EndOfInput
             err.println("Parser "+id+" exiting.")
             exit() 
           }
@@ -187,7 +186,7 @@ object Status {
               showOption(", reply_uid=",twit.replyUser)+
               showOption(", reply_tid=",twit.replyTwit))         
           }
-          case EndOfInput() => {
+          case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
             exit()
           }
