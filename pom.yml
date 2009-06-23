@@ -33,7 +33,7 @@ build:
     - { directory: src/main/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
-      version: 2.11
+      version: 2.11-SNAPSHOT
       executions:
         - goals: [ compile, testCompile ]
       groupId: org.scala-tools
