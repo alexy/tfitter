@@ -28,6 +28,11 @@ case class Twit (
   replyUser: Option[UserID]
   )
 
+case class UserTwit (
+  user: User,
+  twit: Twit
+  )
+  
 case class TwitRange (
   first: TwitID,
   last:  TwitID,

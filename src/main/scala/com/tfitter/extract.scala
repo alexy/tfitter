@@ -4,7 +4,7 @@ import System.err
 import java.io.PrintStream
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit}
+import com.tfitter.db.{User,Twit,UserTwit}
 
 import scala.io.Source
 import scala.actors.Actor
@@ -14,27 +14,45 @@ object Status {
   
   case class BadStatus(reason: String) extends Exception(reason)
    
-  abstract case class ParserMessage()
+  sealed abstract case class ParserMessage()
   case class Parse(s: String) extends ParserMessage
+  case class EndOfInput() // extends ParserMessage // caused class not found exception!
+
+  // this should go into la.scala.util        
+  def showOption[T](prefix: String, x: Option[T]): String = x match {
+    case Some(s) => prefix+s.toString
+    case _ => ""
+  }    
   
-  
-  class ReadLines(source: String, progress: Boolean) extends Actor {    
+  class ReadLines(source: String, numCallers: Int, progress: Boolean) extends Actor {    
     def act = {
-      err.println("ReadLines started")
+      err.println("ReadLines started, object "+self)
       val lines = Source.fromFile(source,"UTF-8").getLines.zipWithIndex
+      
+      var countDown = numCallers
       
       loop {
         react {
-          case a: Actor =>
+          case a: JSONExtractor =>
             { 
               // err.println("got request from actor "+a)
-              // if (!lines.hasNext) // what?
-              try {
-                val (line,lineNumber) = lines.next
-                a ! Parse(line)        
-                if (progress && lineNumber % 10000 == 0) err.print('.')
-              } catch {
-                case _ => err.println("cannot get line")
+              if (!lines.hasNext) {
+                err.println("end of input, informing parser "+a.id)
+                a ! EndOfInput()
+                countDown -= 1
+                if (countDown == 0) {
+                  err.println("ReadLines exiting")
+                  exit()
+                }
+              } else {
+                try {
+                  val (line,lineNumber) = lines.next
+                  a ! Parse(line)        
+                  if (progress && lineNumber % 10000 == 0) err.print('.')
+                } catch {
+                  case _ => err.println("cannot get line")
+                  a ! EndOfInput()
+                }
               }
             }
           case msg => err.println("ReadLines unhandled message:"+msg)
@@ -44,7 +62,7 @@ object Status {
     }
   }  
   
-  class JSONExtractor(id: Int, readLines: ReadLines) extends Actor {
+  class JSONExtractor(val id: Int, val readLines: ReadLines, val inserter: Inserter) extends Actor {
     
     import com.twitter.commons.{Json,JsonException}
     import org.joda.time.DateTime
@@ -66,11 +84,6 @@ object Status {
         case Some(x) => Some(x.asInstanceOf[T])
         case _ => throw BadStatus(whose+" has no "+field)
       }
-          
-    def showOption[T](prefix: String, x: Option[T]): String = x match {
-      case Some(s) => prefix+s.toString
-      case _ => ""
-    }    
     
     // // anyToMap without cast, but with erasure warning
     // def anyToMap: Any => Map[String,Any] = {
@@ -87,7 +100,9 @@ object Status {
     }
     
     def act = {
-      err.println("Parser "+id+" started")
+      err.println("Parser "+id+" started, object "+self+",\n"+
+      "  talking to Inserter "+inserter.id+" ["+inserter+"],\n"+
+      "  and readLines "+readLines)
       readLines ! self
       loop {
         react {
@@ -134,43 +149,76 @@ object Status {
               val replyUser: Option[Int] = extractNullableField(twit,"in_reply_to_user_id","twit")
       
         
-              println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
-                showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
+              // println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
+              //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
-              // val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
-              // val tRes = Twit(tid, twitTime, replyTwit, replyUser)
-              // (uRes,tRes)
+              val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
+              val tRes = Twit(tid, twitTime, replyTwit, replyUser)
+
+              // do we need throttling here?
+              // err.println("parser "+id+" ["+self+"] sends its inserter "+inserter.id+" ["+inserter+"] twit "+tRes.tid)
+              inserter ! UserTwit(uRes,tRes)
+              
               readLines ! self
             }
             catch {
               case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+s)
             }
-          case msg => err.println("JSONExtractor "+id+" unhandled message:"+msg)
+            // finally {
+            // }
+          case EndOfInput() => { 
+            inserter ! EndOfInput()
+            err.println("Parser "+id+" exiting.")
+            exit() 
+          }
+          case msg => err.println("Parser "+id+" unhandled message:"+msg)
           }
         }
       }
     }
 
+  class Inserter(val id: Int) extends Actor {
+    def act() = {
+      err.println("Inserter "+id+" started, object "+self)
+      loop {
+        react {
+          case UserTwit(user, twit) => {
+             println(user.name+" "+twit.time+"tid="+twit.tid+", uid="+user.uid+
+              showOption(", reply_uid=",twit.replyUser)+
+              showOption(", reply_tid=",twit.replyTwit))         
+          }
+          case EndOfInput() => {
+            err.println("Inserter "+id+" exiting.")
+            exit()
+          }
+          case msg => err.println("Inserter "+id+" unhandled message:"+msg)
+        }
+      }
+    }
+  }
   
-  def main(args: Array[String]){
-        
-    val numParsers = 2
+  
+  def main(args: Array[String]) {
+    val numThreads = 2
     
     // make this a parameter:
     val showingProgress = true
     
     Console.setOut(new PrintStream(Console.out, true, "UTF8"))
-    // what do we do for stderr?
-    // Console.setErr(new PrintStream(Console.err, true, "UTF8"))
-
     err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor")
     // Console.println("this is console")
 
-    val readLines = new ReadLines(args(0),showingProgress)
-    val parsers = (0 until numParsers) map (i => new JSONExtractor(i,readLines))
+    val readLines = new ReadLines(args(0),numThreads,showingProgress)
     
+    // before I added type annotation List[Inserter] below, 
+    // I didn't realize I'm not using a List but get a Range...  added .toList below
+    val inserters: List[Inserter] = (0 until numThreads).toList map (new Inserter(_))
+
+    val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
+
     readLines.start
-    for (i <- 0 until numParsers) parsers(i).start
+    inserters foreach (_.start)
+    parsers foreach (_.start)
   }
 }
 
