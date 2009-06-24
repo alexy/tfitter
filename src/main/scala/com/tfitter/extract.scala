@@ -198,7 +198,8 @@ object Status {
   
   
   def main(args: Array[String]) {
-    val numThreads = 2
+    
+    val numThreads = Config.numCores
     
     // make this a parameter:
     val showingProgress = true
