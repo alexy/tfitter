@@ -200,7 +200,7 @@
   </component>
   <component name="ProjectFileVersion" converted="true" />
   <component name="ProjectKey">
-    <option name="state" value="project:///Users/alexyk/twitter/scala/tfitter.ipr" />
+    <option name="state" value="project:///Users/alexyk/twitter/tfitter/tfitter.ipr" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
@@ -231,127 +231,6 @@
     <mapping directory="" vcs="Git" />
   </component>
   <component name="libraryTable">
-    <library name="Maven: org.scala-lang:scala-library:2.7.5">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.7.5/scala-library-2.7.5.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.7.5/scala-library-2.7.5-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.7.5/scala-library-2.7.5-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.scala-lang:scala-compiler:2.7.5">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.7.5/scala-compiler-2.7.5.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.7.5/scala-compiler-2.7.5-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.7.5/scala-compiler-2.7.5-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.talkingpuffin:twitter-api:0.65">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/talkingpuffin/twitter-api/0.65/twitter-api-0.65.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/talkingpuffin/twitter-api/0.65/twitter-api-0.65-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/talkingpuffin/twitter-api/0.65/twitter-api-0.65-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: commons-httpclient:commons-httpclient:3.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: commons-logging:commons-logging:1.0.4">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: commons-codec:commons-codec:1.2">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.2/commons-codec-1.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.2/commons-codec-1.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.2/commons-codec-1.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.scala-lang:scala-swing:2.8.0-SNAPSHOT">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-swing/2.8.0-SNAPSHOT/scala-swing-2.8.0-SNAPSHOT.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-swing/2.8.0-SNAPSHOT/scala-swing-2.8.0-SNAPSHOT-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-swing/2.8.0-SNAPSHOT/scala-swing-2.8.0-SNAPSHOT-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.specs:specs:1.4.3">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/specs/specs/1.4.3/specs-1.4.3.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/specs/specs/1.4.3/specs-1.4.3-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/specs/specs/1.4.3/specs-1.4.3-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: junit:junit:4.4">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.4/junit-4.4.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.4/junit-4.4-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.4/junit-4.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: com.google.collections:google-collections:1.0-rc1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/google/collections/google-collections/1.0-rc1/google-collections-1.0-rc1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/google/collections/google-collections/1.0-rc1/google-collections-1.0-rc1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/google/collections/google-collections/1.0-rc1/google-collections-1.0-rc1-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: log4j:log4j:1.2.14">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/log4j/log4j/1.2.14/log4j-1.2.14.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/log4j/log4j/1.2.14/log4j-1.2.14-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/log4j/log4j/1.2.14/log4j-1.2.14-sources.jar!/" />
-      </SOURCES>
-    </library>
     <library name="Maven: joda-time:joda-time:1.6">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/joda-time/joda-time/1.6/joda-time-1.6.jar!/" />
@@ -405,6 +284,39 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/la/scala/util/1.0/util-1.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.scala-lang:scala-library:2.8.0-SNAPSHOT">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.8.0-SNAPSHOT/scala-library-2.8.0-SNAPSHOT.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.8.0-SNAPSHOT/scala-library-2.8.0-SNAPSHOT-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.8.0-SNAPSHOT/scala-library-2.8.0-SNAPSHOT-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.scala-lang:scala-compiler:2.8.0-SNAPSHOT">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.8.0-SNAPSHOT/scala-compiler-2.8.0-SNAPSHOT.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.8.0-SNAPSHOT/scala-compiler-2.8.0-SNAPSHOT-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-compiler/2.8.0-SNAPSHOT/scala-compiler-2.8.0-SNAPSHOT-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: berkeleydb:je:3.3.82">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/berkeleydb/je/3.3.82/je-3.3.82.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/berkeleydb/je/3.3.82/je-3.3.82-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/berkeleydb/je/3.3.82/je-3.3.82-sources.jar!/" />
       </SOURCES>
     </library>
   </component>

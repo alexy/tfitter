@@ -1,5 +1,8 @@
 package com.tfitter
 
+import actors.Actor
+import collection.immutable.List
+import io.Source
 import System.err
 import java.io.PrintStream
 
@@ -205,7 +208,7 @@ object Status {
     val showingProgress = true
     
     Console.setOut(new PrintStream(Console.out, true, "UTF8"))
-    err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor")
+    err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor in IDEA")
     // Console.println("this is console")
 
     val readLines = new ReadLines(args(0),numThreads,showingProgress)
