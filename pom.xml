@@ -15,21 +15,34 @@
     </properties>
     <repositories>
         <repository>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
             <id>scala-tools.org</id>
+            <name>Scala-Tools Maven2 Release Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </repository>
+        <repository>
+            <id>snapshots.scala-tools.org</id>
+            <name>Scala-Tools Maven2 Snapshot Repository</name>
+            <url>http://scala-tools.org/repo-snapshots</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
             <id>scala-tools.org</id>
+            <name>Scala-Tools Maven2 Release Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
         </pluginRepository>
         <pluginRepository>
+            <id>snapshots.scala-tools.org</id>
+            <name>Scala-Tools Maven2 Snapshot Repository</name>
+            <url>http://scala-tools.org/repo-snapshots</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>twdata-m2-repository</id>
             <name>twdata.org Maven 2 Repository</name>
             <url>http://twdata-m2-repository.googlecode.com/svn/</url>
-            <id>twdata-m2-repository</id>
         </pluginRepository>
     </pluginRepositories>
     <dependencies>
@@ -42,11 +55,6 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-compiler</artifactId>
             <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.talkingpuffin</groupId>
-            <artifactId>twitter-api</artifactId>
-            <version>0.65</version>
         </dependency>
         <dependency>
             <groupId>com.twitter</groupId>
