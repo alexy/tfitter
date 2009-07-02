@@ -1,7 +1,9 @@
 package com.tfitter.db
 
 
-class TwitPG(jdbcURL: String, user: String, pwd: String,
+import org.joda.time.DateTime
+
+class TwitterPG(jdbcURL: String, user: String, pwd: String,
              rangeTable: String, twitTable: String, replyTable: String) extends TwitterDB {
   import types._
 
@@ -174,6 +176,8 @@ class TwitPG(jdbcURL: String, user: String, pwd: String,
       deStream[UserFlags]
   }
 
+  // can replace hard-coded table with format
+  // using ttUser, etc.
   val testRangeSetupSts = Array (
   "drop table if exists " + rangeTable,
   "create table " + rangeTable +
@@ -238,7 +242,7 @@ class TwitPG(jdbcURL: String, user: String, pwd: String,
     format (rrReplyTwit,rrReplyUser,replyTable,rrTwit)
     )
 
-  class TwitPG(tid: TwitID) extends TwitDB(tid: TwitID) {
+  case class TwitPG(tid: TwitID) extends TwitDB(tid: TwitID) {
     def exists: Boolean = {
       val count: Long = selectCountTwitSt << tid <<! { _.nextLong } match {
         case Stream(x) => x
@@ -261,32 +265,29 @@ class TwitPG(jdbcURL: String, user: String, pwd: String,
       }
     }
 
-    def twit_=(t: Twit): Unit = {
+    def put(t: Twit): Unit = {
       // NB: if reply, DO TRANSACTION
       insertTwitSt << tid << t.uid << t.time << t.text <<!
 
-      // maybe need to annotate tuple per http://paste.pocoo.org/show/125889/
-      (t.replyTwit,t.replyUser) match {
-        case (Some(rtid),Some(ruid)) =>
-        insertReplySt << tid << rtid << ruid <<!
+      t.reply match {
+        case Some(r) =>
+          insertReplySt << tid << r.replyTwit << r.replyUser <<!
         case _ => ()
-        // may check we have matching option states:
-        // t.replyTwit.isEmpty == t.replyUser.isEmpty
       }
     }
 
-    def twitCore: Option[Twit] = {
-      (selectTwitSt << tid <<! { rs => Twit(rs,rs,rs,rs,None,None) }) ->:
+    def getCore: Option[Twit] = {
+      (selectTwitSt << tid <<! { rs => Twit(tid,rs,rs,rs,None) }) ->:
       deStream[Twit]
     }
 
-    def twitFull: Option[Twit] = {
-      val ot = twitCore
+    def getFull: Option[Twit] = {
+      val ot = getCore
       ot match {
         case Some(t) => 
           if (isReply) {
             selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } match {
-              case Stream(rep) => { Some(Twit(t,rep)) }
+              case Stream(r) => { Some(Twit(t,r)) }
               case _ => ot
             }
           }
@@ -294,5 +295,34 @@ class TwitPG(jdbcURL: String, user: String, pwd: String,
         case _ => None
       }
     }
+  }
+
+  val testTwitSetupSts = Array (
+    "drop table if exists " + twitTable
+    , "create table " + twitTable +
+    """(tid bigint not null,
+    uid integer not null,
+    time timestamp not null,
+    text varchar(140) not null)"""
+    , "drop table if exists " + replyTable
+    , "create table " + replyTable +
+    """(tid bigint not null,
+    trep bigint not null,
+    urep integer not null)
+    """)
+
+  def testTwit = {
+    implicit val s: Statement = conn << testTwitSetupSts
+
+    val t1 = TwitPG(123)
+
+    val now = new DateTime(new java.util.Date)
+    t1 put Twit(11,1011,now,"let's all go a-tweetin' and be merry!",
+      Some(ReplyTwit(11,9,1007)))
+
+    val t1core = t1.getCore
+    println(t1core)
+    val t1full = t1.getFull
+    println(t1full)
   }
 }

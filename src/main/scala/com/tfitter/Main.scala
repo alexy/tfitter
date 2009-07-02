@@ -15,10 +15,11 @@ object Main {
   // }
   
   def doPGtest {
-    // val dbDriver = Class.forName("org.postgresql.Driver")
-    val tdb = new TwitPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
+    val dbDriver = Class.forName("org.postgresql.Driver")
+    val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
       
     tdb.testRange
+    tdb.testTwit
   }
   
   /*
@@ -34,5 +35,7 @@ object Main {
 
   def main(args: Array[String])  {
     println("numCores => "+Config.numCores)
+
+    doPGtest
   }
 }

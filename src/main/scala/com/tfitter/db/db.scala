@@ -1,6 +1,7 @@
 package com.tfitter.db
 
 import org.joda.time.DateTime
+import la.scala.util.Validated
 
 object types {
   type UserID = Int
@@ -32,14 +33,18 @@ case class Twit (
   uid: UserID,
   time: DateTime,
   text: String,
-  replyTwit: Option[TwitID],
-  replyUser: Option[UserID]
-  )
+  reply: Option[ReplyTwit]
+  ) extends Validated {
+  def isValid = reply match {
+    case Some(r) => tid == r.tid
+    case _ => true
+  }
+}
 
 object Twit {
   def apply(t: Twit, r: ReplyTwit): Twit =
     Twit(t.tid,t.uid,t.time,t.text,
-      Some(r.replyTwit),Some(r.replyUser))
+      Some(r))
 }
 
 case class UserTwit (
@@ -131,10 +136,10 @@ trait TwitterDB {
   abstract class TwitDB(tid: TwitID) {
     def exists: Boolean
     def isReply: Boolean
-    
-    def twit_=(t: Twit): Unit // can raise Duplicate
-    def twitCore: Option[Twit] // can raise NotFound
-    def twitFull: Option[Twit] // can raise NotFound
+
+    def put(t: Twit): Unit // can raise Duplicate
+    def getCore: Option[Twit] // can raise NotFound
+    def getFull: Option[Twit] // can raise NotFound
   }
 
 }

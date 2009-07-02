@@ -6,7 +6,7 @@ import System.err
 import java.io.PrintStream
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit,UserTwit}
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit}
 
 import scala.io.Source
 import scala.actors.Actor
@@ -148,15 +148,22 @@ object Status {
               val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
               catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
               val twitText: String = extractField(twit, "text", "twit")
-              val replyTwit: Option[Long] = extractNullableField(twit,"in_reply_to_status_id","twit")
-              val replyUser: Option[Int] = extractNullableField(twit,"in_reply_to_user_id","twit")
+              val replyTwit: Option[TwitID] = extractNullableField(twit,"in_reply_to_status_id","twit")
+              val replyUser: Option[UserID] = extractNullableField(twit,"in_reply_to_user_id","twit")
       
         
               // println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
               //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
               val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
-              val tRes = Twit(tid, uid, twitTime, twitText, replyTwit, replyUser)
+              val replyTwitOpt: Option[ReplyTwit] = (replyTwit,replyUser) match {
+                case (Some(rtid),Some(ruid)) => Some(ReplyTwit(tid,rtid,ruid))
+                case _ =>
+                  if (replyTwit.isEmpty != replyUser.isEmpty)
+                    throw BadStatus("reply to twit id and user id nullity doesn't match")
+                  else None
+              }
+              val tRes = Twit(tid, uid, twitTime, twitText, replyTwitOpt)
 
               // do we need throttling here?
               // err.println("parser "+id+" ["+self+"] sends its inserter "+inserter.id+" ["+inserter+"] twit "+tRes.tid)
@@ -185,10 +192,14 @@ object Status {
       loop {
         react {
           case UserTwit(user, twit) => {
-             println(user.name+" "+twit.time+": "+twit.text+
-              ", tid="+twit.tid+", uid="+user.uid+
-              showOption(", reply_uid=",twit.replyUser)+
-              showOption(", reply_tid=",twit.replyTwit))         
+             print(user.name+" "+twit.time+": "+twit.text+
+              ", tid="+twit.tid+", uid="+user.uid)
+             twit.reply match {
+               case Some(r) => println(", reply_twit="+r.replyTwit +
+               ", reply_user="+r.replyUser)
+               case _ => ()
+             }
+            println
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
