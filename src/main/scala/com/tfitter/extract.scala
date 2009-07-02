@@ -1,7 +1,6 @@
 package com.tfitter
 
 import actors.Actor
-import collection.immutable.List
 import io.Source
 import System.err
 import java.io.PrintStream
@@ -148,6 +147,7 @@ object Status {
               val twitCreatedAt: String = extractField(twit,"created_at","twit")
               val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
               catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
+              val twitText: String = extractField(twit, "text", "twit")
               val replyTwit: Option[Long] = extractNullableField(twit,"in_reply_to_status_id","twit")
               val replyUser: Option[Int] = extractNullableField(twit,"in_reply_to_user_id","twit")
       
@@ -156,7 +156,7 @@ object Status {
               //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
               val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
-              val tRes = Twit(tid, twitTime, replyTwit, replyUser)
+              val tRes = Twit(tid, uid, twitTime, twitText, replyTwit, replyUser)
 
               // do we need throttling here?
               // err.println("parser "+id+" ["+self+"] sends its inserter "+inserter.id+" ["+inserter+"] twit "+tRes.tid)
@@ -185,7 +185,8 @@ object Status {
       loop {
         react {
           case UserTwit(user, twit) => {
-             println(user.name+" "+twit.time+"tid="+twit.tid+", uid="+user.uid+
+             println(user.name+" "+twit.time+": "+twit.text+
+              ", tid="+twit.tid+", uid="+user.uid+
               showOption(", reply_uid=",twit.replyUser)+
               showOption(", reply_tid=",twit.replyTwit))         
           }

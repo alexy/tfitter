@@ -12,16 +12,17 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/scala" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/target-2.7.5" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.8.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-compiler:2.8.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="Maven: com.twitter:scala-json:1.0" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.7.5" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-compiler:2.7.5" level="project" />
     <orderEntry type="library" exported="" name="Maven: joda-time:joda-time:1.6" level="project" />
-    <orderEntry type="library" exported="" name="Maven: la.scala.sql:rich:1.0" level="project" />
+    <orderEntry type="library" exported="" name="Maven: com.twitter:scala-json_2.7.5:1.0" level="project" />
+    <orderEntry type="library" exported="" name="Maven: la.scala.sql:rich_2.7.5:1.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: org.postgreqsl:jdbc4:8.3-604" level="project" />
-    <orderEntry type="library" exported="" name="Maven: la.scala:util:1.0" level="project" />
+    <orderEntry type="library" exported="" name="Maven: la.scala:util_2.7.5:1.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: berkeleydb:je:3.3.82" level="project" />
   </component>
 </module>

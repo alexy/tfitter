@@ -16,7 +16,7 @@ object Main {
   
   def doPGtest {
     // val dbDriver = Class.forName("org.postgresql.Driver")
-    val tdb = new TwitPG("jdbc:postgresql:twitter","alexyk","","testRange")
+    val tdb = new TwitPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
       
     tdb.testRange
   }

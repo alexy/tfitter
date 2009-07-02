@@ -20,13 +20,27 @@ case class User (
   location: String,
   utcOffset: UTCOffset
   )
+
+case class ReplyTwit (
+  tid: TwitID,
+  replyTwit: TwitID,
+  replyUser: UserID
+  )
   
 case class Twit (
   tid: TwitID,
+  uid: UserID,
   time: DateTime,
+  text: String,
   replyTwit: Option[TwitID],
   replyUser: Option[UserID]
   )
+
+object Twit {
+  def apply(t: Twit, r: ReplyTwit): Twit =
+    Twit(t.tid,t.uid,t.time,t.text,
+      Some(r.replyTwit),Some(r.replyUser))
+}
 
 case class UserTwit (
   user: User,
@@ -53,7 +67,7 @@ case class AdjustRange (
   total: TwitCount
 )
 
-abstract trait TwitDB {
+trait TwitterDB {
   
   class DBError extends Exception
   
@@ -113,14 +127,16 @@ abstract trait TwitDB {
   }
 
   case class Duplicate(tid: TwitID) extends DBError
-  
-  /*
-  def twitPut(t: Twit): Unit // can raise Duplicate
-  
-  def twitGet(tid: TwitID): Twit
-  
-  def haveTwit(tid: TwitID): Boolean
-  */
+
+  abstract class TwitDB(tid: TwitID) {
+    def exists: Boolean
+    def isReply: Boolean
+    
+    def twit_=(t: Twit): Unit // can raise Duplicate
+    def twitCore: Option[Twit] // can raise NotFound
+    def twitFull: Option[Twit] // can raise NotFound
+  }
+
 }
 
 //trait Nonames {

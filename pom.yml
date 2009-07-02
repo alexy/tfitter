@@ -1,13 +1,22 @@
-artifactId: tfitter
 groupId: la.scala
-version: 0.1
+artifactId: "tfitter_${scala.version}"
+version: 0.5
 name: Twitter Crawler
 description: La Scala Twitter Crawler
 url: "http://tfitter.com/"
 properties:
+  java.src.version: 1.6
   project.build.sourceEncoding: UTF-8
-  scala.version: 2.8.0-SNAPSHOT
   main.class: com.tfitter.Status
+profiles:
+  - activation:
+      activeByDefault: true
+    id: Scala-2.7.5
+    properties:
+      scala.version: 2.7.5
+  - id: Scala-2.8.0-SNAPSHOT
+    properties:
+      scala.version: 2.8.0-SNAPSHOT
 repositories:
   - { id: scala-tools.org, name: Scala-Tools Maven2 Release Repository, url: "http://scala-tools.org/repo-releases" }
   - id: snapshots.scala-tools.org
@@ -22,21 +31,21 @@ pluginRepositories:
 dependencies:
   - { groupId: org.scala-lang, artifactId: scala-library, version: "${scala.version}" }
   - { groupId: org.scala-lang, artifactId: scala-compiler, version: "${scala.version}" }
-  - { groupId: com.twitter, artifactId: scala-json, version: 1.0 }
   - { groupId: joda-time, artifactId: joda-time, version: 1.6 }
-  - { groupId: la.scala.sql, artifactId: rich, version: 1.0 }
-  - { groupId: la.scala, artifactId: util, version: 1.0 }
+  - { groupId: com.twitter, artifactId: "scala-json_${scala.version}", version: 1.0 }
+  - { groupId: la.scala.sql, artifactId: "rich_${scala.version}", version: 1.0 }
+  - { groupId: la.scala, artifactId: "util_${scala.version}", version: 1.0 }
 reporting:
   plugins:
     - { artifactId: maven-scala-plugin, groupId: org.scala-tools }
 build:
   sourceDirectory: src/main/scala
+  directory: "target-${scala.version}"
   filters: [ src/main/filters/filter.properties ]
   resources:
     - { directory: src/main/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
-      version: 2.11-SNAPSHOT
       executions:
         - goals: [ compile, testCompile ]
       groupId: org.scala-tools
