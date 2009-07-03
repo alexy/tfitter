@@ -9,7 +9,8 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
   import java.sql.{DriverManager, Connection, ResultSet, PreparedStatement, Statement, Date}
   import DriverManager.{getConnection => connect}
-  
+
+  // report this to IDEA folks -- I do import ->: so this is not unused:
   import org.suffix.util.FunctionNotation._
 
   val rtUser     = "uid"
@@ -297,6 +298,10 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
     }
   }
 
+  // make the create statement a format for column names
+  // may add foreign key constraint on tid in ReplyTwit
+  // but that won't hold for gardenhose as the reply-to
+  // is not guaranteed to be there!
   val testTwitSetupSts = Array (
     "drop table if exists " + twitTable
     , "create table " + twitTable +
@@ -307,7 +312,7 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
     , "drop table if exists " + replyTable
     , "create table " + replyTable +
     """(tid bigint not null,
-    trep bigint not null,
+    trep bigint, -- can often be null
     urep integer not null)
     """)
 
@@ -318,11 +323,19 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
     val now = new DateTime(new java.util.Date)
     t1 put Twit(11,1011,now,"let's all go a-tweetin' and be merry!",
-      Some(ReplyTwit(11,9,1007)))
+      Some(ReplyTwit(11,Some(9),1007)))
+
+    val t2 = TwitPG(248)
+
+    t2 put Twit(105,1011,now,"empty replies are not so empty as they might seem",
+      Some(ReplyTwit(105,None,1011)))
 
     val t1core = t1.getCore
     println(t1core)
     val t1full = t1.getFull
     println(t1full)
+
+    val t2full = t2.getFull
+    println(t2full)
   }
 }

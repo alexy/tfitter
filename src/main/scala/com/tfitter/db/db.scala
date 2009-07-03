@@ -24,7 +24,7 @@ case class User (
 
 case class ReplyTwit (
   tid: TwitID,
-  replyTwit: TwitID,
+  replyTwit: Option[TwitID],
   replyUser: UserID
   )
   

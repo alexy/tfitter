@@ -1,12 +1,10 @@
 package com.tfitter
 
-import actors.Actor
-import io.Source
 import System.err
 import java.io.PrintStream
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit}
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,TwitterPG}
 
 import scala.io.Source
 import scala.actors.Actor
@@ -156,13 +154,21 @@ object Status {
               //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
               val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
-              val replyTwitOpt: Option[ReplyTwit] = (replyTwit,replyUser) match {
-                case (Some(rtid),Some(ruid)) => Some(ReplyTwit(tid,rtid,ruid))
-                case _ =>
-                  if (replyTwit.isEmpty != replyUser.isEmpty)
-                    throw BadStatus("reply to twit id and user id nullity doesn't match")
-                  else None
-              }
+              val replyTwitOpt: Option[ReplyTwit] =
+                try {
+                  replyUser match {
+                    case Some(ruid) => Some(ReplyTwit(tid,replyTwit,ruid))
+                    case _ =>
+                      if (!replyTwit.isEmpty)  // nonEmpty is in 2.8
+                        throw BadStatus("replyTwit nonempty while replyUser empty")
+                      else None
+                  }
+                } catch { case _: ClassCastException =>
+                  // throw BadStatus
+                  error(":***CAST ERROR***: tid="+tid+", uid="+uid+
+                          ", replyTwit="+replyTwit+", replyUser="+replyUser+" => "+
+                    twitText)
+                }
               val tRes = Twit(tid, uid, twitTime, twitText, replyTwitOpt)
 
               // do we need throttling here?
@@ -186,7 +192,9 @@ object Status {
       }
     }
 
-  class Inserter(val id: Int) extends Actor {
+  abstract class Inserter(val id: Int) extends Actor
+  
+  class Printer(override val id: Int) extends Inserter(id) {
     def act() = {
       err.println("Inserter "+id+" started, object "+self)
       loop {
@@ -210,10 +218,64 @@ object Status {
       }
     }
   }
+
+
+  class PGInserter(override val id: Int, val tdb: TwitterPG) extends Inserter(id) {
+    def act() = {
+      err.println("Inserter "+id+" started, object "+self)
+      loop {
+        react {
+          case UserTwit(user, twit) => {
+             print(user.name+" "+twit.time+": "+twit.text+
+              ", tid="+twit.tid+", uid="+user.uid)
+             twit.reply match {
+               case Some(r) => println(", reply_twit="+r.replyTwit +
+               ", reply_user="+r.replyUser)
+               case _ => ()
+             }
+            println
+            val t = tdb.TwitPG(twit.tid)
+            t put twit
+          }
+          case EndOfInput => {
+            err.println("Inserter "+id+" exiting.")
+            exit()
+          }
+          case msg => err.println("Inserter "+id+" unhandled message:"+msg)
+        }
+      }
+    }
+  }
+
+  // simple testing version where inserters just print their inputs
+  def printer: Array[String] => Unit = { args => 
+
+    val numThreads = Config.numCores
+
+    // make this a parameter:
+    val showingProgress = true
+
+    Console.setOut(new PrintStream(Console.out, true, "UTF8"))
+    err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor in IDEA")
+    // Console.println("this is console")
+
+    val readLines = new ReadLines(args(0),numThreads,showingProgress)
+
+    // before I added type annotation List[Inserter] below,
+    // I didn't realize I'm not using a List but get a Range...  added .toList below
+    val inserters: List[Printer] = (0 until numThreads).toList map (new Printer(_))
+
+    val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
+
+    readLines.start
+    inserters foreach (_.start)
+    parsers foreach (_.start)
+  }
+
   
-  
-  def main(args: Array[String]) {
-    
+  def inserter(args: Array[String]) {
+    import la.scala.sql.rich.RichSQL._
+
     val numThreads = Config.numCores
     
     // make this a parameter:
@@ -223,11 +285,16 @@ object Status {
     err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor in IDEA")
     // Console.println("this is console")
 
+    // don't even need ti import java.sql.DriverManager for this,
+    // magic -- NB see excatly what it does:
+    val dbDriver = Class.forName("org.postgresql.Driver")
+    val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
+
     val readLines = new ReadLines(args(0),numThreads,showingProgress)
     
     // before I added type annotation List[Inserter] below, 
     // I didn't realize I'm not using a List but get a Range...  added .toList below
-    val inserters: List[Inserter] = (0 until numThreads).toList map (new Inserter(_))
+    val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_,tdb))
 
     val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
 
@@ -235,6 +302,10 @@ object Status {
     inserters foreach (_.start)
     parsers foreach (_.start)
   }
+
+  def main(args: Array[String]) =
+    inserter(args)
+    // printer(args)
 }
 
 // val line = scala.io.Source.fromFile("/s/data/twitter/samples/2174151307.json").getLines.next

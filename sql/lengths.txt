@@ -1,0 +1,6 @@
+-- screen name: varchar(20) 
+-- name: varchar(20) 
+-- location: varchar(30) 
+-- description: varchar(160) 
+-- time zone: you should store this in a native time format 
+-- source: varchar(256) 
