@@ -147,3 +147,8 @@ trait TwitterDB {
 //trait Nonames {
 //  def f(Int) :Unit
 //}
+
+// user profile:
+// last time if tweet
+// total number of replies to twits
+// -''- to users without twits

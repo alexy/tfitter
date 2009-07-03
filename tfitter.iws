@@ -66,19 +66,19 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf>
-          <file leaf-file-name="db-pg.scala" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="db-pg.scala" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="246" column="41" selection-start="6759" selection-end="6759" vertical-scroll-proportion="0.0">
+                <state line="340" column="0" selection-start="9158" selection-end="9158" vertical-scroll-proportion="0.8378378">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="extract.scala" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="extract.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="306" column="17" selection-start="11935" selection-end="11935" vertical-scroll-proportion="0.7837838">
+                <state line="306" column="17" selection-start="11935" selection-end="11935" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -98,11 +98,11 @@
               <provider selected="true" editor-type-id="text-editor">
                 <state line="149" column="0" selection-start="3310" selection-end="3310" vertical-scroll-proportion="0.0">
                   <folding>
-                    <marker date="1246578987000" expanded="true" signature="99:213" placeholder="{...}" />
-                    <marker date="1246578987000" expanded="true" signature="719:816" placeholder="{...}" />
-                    <marker date="1246578987000" expanded="true" signature="1260:3265" placeholder="{...}" />
-                    <marker date="1246578987000" expanded="true" signature="1732:2961" placeholder="{...}" />
-                    <marker date="1246578987000" expanded="true" signature="3053:3262" placeholder="{...}" />
+                    <marker date="1246601013000" expanded="true" signature="99:213" placeholder="{...}" />
+                    <marker date="1246601013000" expanded="true" signature="719:816" placeholder="{...}" />
+                    <marker date="1246601013000" expanded="true" signature="1260:3265" placeholder="{...}" />
+                    <marker date="1246601013000" expanded="true" signature="1732:2961" placeholder="{...}" />
+                    <marker date="1246601013000" expanded="true" signature="3053:3262" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -112,10 +112,10 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="db.scala" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="db.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="46" column="28" selection-start="814" selection-end="814" vertical-scroll-proportion="-1.248366">
+                <state line="153" column="30" selection-start="3416" selection-end="3416" vertical-scroll-proportion="0.9477124">
                   <folding />
                 </state>
               </provider>
@@ -585,29 +585,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="149" column="0" selection-start="3310" selection-end="3310" vertical-scroll-proportion="0.0">
-          <folding>
-            <marker date="1246578987000" expanded="true" signature="99:213" placeholder="{...}" />
-            <marker date="1246578987000" expanded="true" signature="719:816" placeholder="{...}" />
-            <marker date="1246578987000" expanded="true" signature="1260:3265" placeholder="{...}" />
-            <marker date="1246578987000" expanded="true" signature="1732:2961" placeholder="{...}" />
-            <marker date="1246578987000" expanded="true" signature="3053:3262" placeholder="{...}" />
-          </folding>
+        <state line="306" column="17" selection-start="11935" selection-end="11935" vertical-scroll-proportion="0.0">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="246" column="41" selection-start="6759" selection-end="6759" vertical-scroll-proportion="0.0">
+        <state line="340" column="0" selection-start="9158" selection-end="9158" vertical-scroll-proportion="0.8378378">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="306" column="17" selection-start="11935" selection-end="11935" vertical-scroll-proportion="0.7837838">
+        <state line="153" column="30" selection-start="3416" selection-end="3416" vertical-scroll-proportion="0.9477124">
           <folding />
         </state>
       </provider>
