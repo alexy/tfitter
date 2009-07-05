@@ -147,7 +147,7 @@ object Status {
               val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
               catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
               val twitText: String = extractField(twit, "text", "twit")
-              val replyTwit: Option[TwitID] = extractNullableField(twit,"in_reply_to_status_id","twit")
+              val replyTwit: Option[TwitID] = extractNullableField[TwitID](twit,"in_reply_to_status_id","twit")
               val replyUser: Option[UserID] = extractNullableField(twit,"in_reply_to_user_id","twit")
       
         
@@ -237,9 +237,9 @@ object Status {
              }
             println
             */
-            // val t = tdb.TwitPG(twit.tid)
-            // t put twit
             try {
+              // val t = tdb.TwitPG(twit.tid)
+              // t put twit
               tdb.insertUserTwit(ut)
             } catch {
               case DBError(msg) => err.println("DB ERROR: "+msg)

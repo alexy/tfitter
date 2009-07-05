@@ -328,14 +328,35 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
       // NB: if reply, DO TRANSACTION
       try {
         insertTwitSt << tid << t.uid << t.time << t.text <<!
-
+      } catch {
+          case e: org.postgresql.util.PSQLException =>
+            err.println("TOO LONG: "+e+" ["+t.text+"]")
+            throw DBError("CANNOT PUT TWIT "+tid)
+          case e => err.println("TWIT:"+e)
+            throw DBError("CANNOT PUT TWIT "+tid)
+      }
+      try {
         t.reply match {
           case Some(r) =>
-            insertReplySt << tid << r.replyTwit << r.replyUser <<!
+          try {
+            insertReplySt << tid << r.replyTwit /* Some(2500000L) */ << r.replyUser <<!
+          } catch {
+            case e: ClassCastException =>
+                err.println("CAST:"+e+"[ tid="+tid+" rtid="+r.replyTwit+" ruid="+r.replyUser+"]")              
+                val rtLongOpt =  r.replyTwit match {
+                case Some(tid) => Some(tid.toLong)
+                case _ => None
+              }
+              insertReplySt << tid << rtLongOpt << r.replyUser.toLong <<!              
+
+          }
           case _ => ()
         }
       } catch {
-        case _ => throw DBError("CANNOT PUT TWIT "+tid)
+        case e: ClassCastException => err.println("STILL CAST:"+e)
+           throw DBError("CANNOT PUT TWIT "+tid)
+        case e => err.println("REPLY:"+e)
+          throw DBError("CANNOT PUT TWIT "+tid)
       }
     }
 
@@ -433,7 +454,8 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
         conn.commit
       }
     } catch {
-      case _ => {
+      case e => {
+        // err.println(e)
         err.println("ROLLBACK uid="+uid+" tid="+tid)
         conn.rollback
       }
