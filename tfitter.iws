@@ -69,7 +69,7 @@
           <file leaf-file-name="db-pg.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="299" column="0" selection-start="8236" selection-end="8236" vertical-scroll-proportion="0.9904535">
+                <state line="312" column="5" selection-start="8583" selection-end="8583" vertical-scroll-proportion="0.7004717">
                   <folding />
                 </state>
               </provider>
@@ -100,7 +100,7 @@
           <file leaf-file-name="db.scala" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.8108696">
+                <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.80215055">
                   <folding />
                 </state>
               </provider>
@@ -433,7 +433,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="18" y="22" width="1420" height="860" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Web Preview" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
       <window_info id="Dataflow to this" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
@@ -445,12 +445,12 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971507" sideWeight="0.5" order="1" side_tool="false" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1632653" sideWeight="0.6621438" order="1" side_tool="false" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32157394" sideWeight="0.5" order="7" side_tool="false" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32157394" sideWeight="0.5" order="7" side_tool="false" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.660787" order="1" side_tool="false" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971507" sideWeight="0.5" order="7" side_tool="false" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39891452" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
@@ -574,7 +574,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.8108696">
+        <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.80215055">
           <folding />
         </state>
       </provider>
@@ -588,7 +588,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="299" column="0" selection-start="8236" selection-end="8236" vertical-scroll-proportion="0.9904535">
+        <state line="312" column="5" selection-start="8583" selection-end="8583" vertical-scroll-proportion="0.7004717">
           <folding />
         </state>
       </provider>

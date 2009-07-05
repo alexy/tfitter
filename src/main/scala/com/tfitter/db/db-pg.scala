@@ -297,13 +297,18 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
   case class TwitPG(tid: TwitID) extends TwitDB(tid: TwitID) {
     def exists: Boolean = {
-      val count: Long = selectCountTwitSt << tid <<! { _.nextLong } match {
-        case Stream(x) => x
-        case _ => 0
-      }
-      count match {
-        case 0 => false
-        case _ => true
+      // getting ResultSet closed error once in a while...
+      try {
+        val count: Long = selectCountTwitSt << tid <<! { _.nextLong } match {
+          case Stream(x) => x
+          case _ => 0
+        }
+        count match {
+          case 0 => false
+          case _ => true
+        }
+      } catch {
+        case _ => false
       }
     }
 
