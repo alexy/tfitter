@@ -28,6 +28,7 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
   import la.scala.sql.rich.RichSQL._
 
   implicit val conn = connect(jdbcURL, user, pwd)
+  conn.setAutoCommit(false)
 
   def commaSeparated(s: String, n: Int): String = 
     /*List.fill(n)(s) */ List.make(n,s) mkString "," // 2.8/7
@@ -414,20 +415,28 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
   def insertUserTwit(ut: UserTwit): Unit = {
     val UserTwit(user,twit) = ut
+    val uid = user.uid
+    val tid = twit.tid
+    try {
 
-    val t = TwitPG(twit.tid)
+      val t = TwitPG(tid)
 
-    if (t.exists) {
-      err.println("ALREADY HAVE TWIT "+t.tid)
-    } else {
-      // start transaction
-      val u = UserPG(user.uid)
-      // may declare that as (u,t)
-      // as it's already matched:
-      u.updateUserForTwit(ut)
-      t put twit
-      // commit
+      if (t.exists) {
+        err.println("ALREADY HAVE TWIT "+tid)
+      } else {
+        // conn.begin
+        val u = UserPG(uid)
+        // may declare that as (u,t)
+        // as it's already matched:
+        u.updateUserForTwit(ut)
+        t put twit
+        conn.commit
+      }
+    } catch {
+      case _ => {
+        err.println("ROLLBACK uid="+uid+" tid="+tid)
+        conn.rollback
+      }
     }
-
   }
 }

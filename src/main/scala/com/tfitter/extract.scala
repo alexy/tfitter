@@ -221,7 +221,8 @@ object Status {
   }
 
 
-  class PGInserter(override val id: Int, val tdb: TwitterPG) extends Inserter(id) {
+  class PGInserter(override val id: Int) extends Inserter(id) {
+    val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
     def act() = {
       err.println("Inserter "+id+" started, object "+self)
       loop {
@@ -295,13 +296,12 @@ object Status {
     // don't even need ti import java.sql.DriverManager for this,
     // magic -- NB see excatly what it does:
     val dbDriver = Class.forName("org.postgresql.Driver")
-    val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
 
     val readLines = new ReadLines(args(0),numThreads,showingProgress)
     
     // before I added type annotation List[Inserter] below, 
     // I didn't realize I'm not using a List but get a Range...  added .toList below
-    val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_,tdb))
+    val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_))
 
     val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
 

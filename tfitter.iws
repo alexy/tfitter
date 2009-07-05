@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tfitter.iws" afterPath="$PROJECT_DIR$/tfitter.iws" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala" />
     </list>
@@ -66,19 +65,19 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf>
-          <file leaf-file-name="db-pg.scala" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="db-pg.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="312" column="5" selection-start="8583" selection-end="8583" vertical-scroll-proportion="0.7004717">
+                <state line="426" column="11" selection-start="11352" selection-end="11352" vertical-scroll-proportion="-6.6153846">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="extract.scala" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="extract.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="6" column="69" selection-start="166" selection-end="166" vertical-scroll-proportion="0.0">
+                <state line="303" column="87" selection-start="11971" selection-end="11971" vertical-scroll-proportion="0.52">
                   <folding />
                 </state>
               </provider>
@@ -579,16 +578,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="69" selection-start="166" selection-end="166" vertical-scroll-proportion="0.0">
+        <state line="426" column="11" selection-start="11352" selection-end="11352" vertical-scroll-proportion="-6.6153846">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="312" column="5" selection-start="8583" selection-end="8583" vertical-scroll-proportion="0.7004717">
+        <state line="303" column="87" selection-start="11971" selection-end="11971" vertical-scroll-proportion="0.52">
           <folding />
         </state>
       </provider>
