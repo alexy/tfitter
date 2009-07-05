@@ -4,7 +4,7 @@ import System.err
 import java.io.PrintStream
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,TwitterPG}
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,TwitterPG,DBError}
 
 import scala.io.Source
 import scala.actors.Actor
@@ -226,7 +226,7 @@ object Status {
       err.println("Inserter "+id+" started, object "+self)
       loop {
         react {
-          case ut @ UserTwit(user, twit) => {
+          case ut @ UserTwit(_,_) => { /* ut @ UserTwit(user,twit)
              print(user.name+" "+twit.time+": "+twit.text+
               ", tid="+twit.tid+", uid="+user.uid)
              twit.reply match {
@@ -235,9 +235,14 @@ object Status {
                case _ => ()
              }
             println
+            */
             // val t = tdb.TwitPG(twit.tid)
             // t put twit
-            tdb.insertUserTwit(ut)
+            try {
+              tdb.insertUserTwit(ut)
+            } catch {
+              case DBError(msg) => err.println("DB ERROR: "+msg)
+            }
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")

@@ -69,7 +69,7 @@
           <file leaf-file-name="db-pg.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="416" column="33" selection-start="11141" selection-end="11141" vertical-scroll-proportion="1.2248803">
+                <state line="299" column="0" selection-start="8236" selection-end="8236" vertical-scroll-proportion="0.9904535">
                   <folding />
                 </state>
               </provider>
@@ -78,7 +78,7 @@
           <file leaf-file-name="extract.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="239" column="33" selection-start="9724" selection-end="9724" vertical-scroll-proportion="0.0">
+                <state line="6" column="69" selection-start="166" selection-end="166" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -100,7 +100,7 @@
           <file leaf-file-name="db.scala" pinned="false" current="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="108" column="7" selection-start="2272" selection-end="2272" vertical-scroll-proportion="2.5882354">
+                <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.8108696">
                   <folding />
                 </state>
               </provider>
@@ -211,7 +211,7 @@
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="RunManagerConfig.showSettingsBeforeRunnig" value="false" />
   </component>
-  <component name="RunManager" selected="Application.Status">
+  <component name="RunManager" selected="Application.FullStatus">
     <configuration default="true" type="Remote" factoryName="Remote">
       <option name="USE_SOCKET_TRANSPORT" value="true" />
       <option name="SERVER_MODE" value="false" />
@@ -449,8 +449,8 @@
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.660787" order="1" side_tool="false" />
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32971507" sideWeight="0.5" order="7" side_tool="false" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971507" sideWeight="0.5" order="7" side_tool="false" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39891452" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
@@ -574,21 +574,21 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="108" column="7" selection-start="2272" selection-end="2272" vertical-scroll-proportion="2.5882354">
+        <state line="151" column="5" selection-start="3374" selection-end="3374" vertical-scroll-proportion="0.8108696">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="239" column="33" selection-start="9724" selection-end="9724" vertical-scroll-proportion="0.0">
+        <state line="6" column="69" selection-start="166" selection-end="166" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/db/db-pg.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="416" column="33" selection-start="11141" selection-end="11141" vertical-scroll-proportion="1.2248803">
+        <state line="299" column="0" selection-start="8236" selection-end="8236" vertical-scroll-proportion="0.9904535">
           <folding />
         </state>
       </provider>

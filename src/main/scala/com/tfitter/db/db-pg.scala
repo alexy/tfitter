@@ -62,15 +62,15 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
     )
 
   val updateRangeFirstSt = conn prepareStatement (
-    updateFmt(6)
-    format (rangeTable,rtFirst,rtFirstTime,rtTotal,
-            rtDeclared,rtReplyTwits,rtReplyUsers,rtUser)
+    updateFmt(7)
+    format (rangeTable,rtFirst,rtFirstTime,rtTotal,rtDeclared,
+            rtFriends,rtReplyTwits,rtReplyUsers,rtUser)
     )
 
   val updateRangeLastSt = conn prepareStatement (
-    updateFmt(6)
-    format (rangeTable,rtLast,rtLastTime,rtTotal,
-            rtDeclared,rtReplyTwits,rtReplyUsers,rtUser)
+    updateFmt(7)
+    format (rangeTable,rtLast,rtLastTime,rtTotal,rtDeclared,
+            rtFriends,rtReplyTwits,rtReplyUsers,rtUser)
     )
 
 
@@ -134,7 +134,7 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
       case Some(x) => { import x._
         updateRangeFirstSt << firstTwit << firstTwitTime <<
                 totalTwits << totalTwitsDeclared << numFriends <<
-                numReplyTwits << numReplyUsers << flags << x.uid <<! }
+                numReplyTwits << numReplyUsers << x.uid <<! }
       case _ => ()
     }
 
@@ -142,7 +142,7 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
       case Some(x) => { import x._
         updateRangeFirstSt << lastTwit << lastTwitTime <<
                 totalTwits << totalTwitsDeclared << numFriends <<
-                numReplyTwits << numReplyUsers << flags << x.uid <<! }
+                numReplyTwits << numReplyUsers << x.uid <<! }
       case _ => ()
     }
 
@@ -320,12 +320,16 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
     def put(t: Twit): Unit = {
       // NB: if reply, DO TRANSACTION
-      insertTwitSt << tid << t.uid << t.time << t.text <<!
+      try {
+        insertTwitSt << tid << t.uid << t.time << t.text <<!
 
-      t.reply match {
-        case Some(r) =>
-          insertReplySt << tid << r.replyTwit << r.replyUser <<!
-        case _ => ()
+        t.reply match {
+          case Some(r) =>
+            insertReplySt << tid << r.replyTwit << r.replyUser <<!
+          case _ => ()
+        }
+      } catch {
+        case _ => throw DBError("CANNOT PUT TWIT "+tid)
       }
     }
 

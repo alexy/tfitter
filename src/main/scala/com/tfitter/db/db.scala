@@ -91,10 +91,10 @@ case class AdjustRange (
   total: TwitCount
 )
 
+case class DBError(reason: String) extends Exception(reason)
+
 trait TwitterDB {
-  
-  class DBError extends Exception
-  
+
   // could replace object by a class with parameter UserID
   // and create short-lived objects per user
 
@@ -149,7 +149,7 @@ trait TwitterDB {
   */
   }
 
-  case class Duplicate(tid: TwitID) extends DBError
+  // case class Duplicate(tid: TwitID) extends DBError
 
   abstract class TwitDB(tid: TwitID) {
     def exists: Boolean
