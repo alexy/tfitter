@@ -1,6 +1,6 @@
 package com.tfitter.db
 
-
+import System.err
 import org.joda.time.DateTime
 
 class TwitterPG(jdbcURL: String, user: String, pwd: String,
@@ -13,12 +13,17 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
   // report this to IDEA folks -- I do import ->: so this is not unused:
   import org.suffix.util.FunctionNotation._
 
-  val rtUser     = "uid"
-  val rtFirst    = "first"
-  val rtLast     = "last"
-  val rtTotal    = "total"
-  val rtDeclared = "declared"
-  val rtFlags    = "flags"
+  val rtUser       = "uid"
+  val rtFirst      = "first_twit"
+  val rtLast       = "last_twit"
+  val rtFirstTime  = "first_time"
+  val rtLastTime   = "last_time"
+  val rtTotal      = "total_twits"
+  val rtDeclared   = "declared_twits"
+  val rtFriends    = "num_friends"
+  val rtReplyTwits = "reply_twits"
+  val rtReplyUsers = "reply_users"
+  val rtFlags      = "flags"
 
   import la.scala.sql.rich.RichSQL._
 
@@ -43,54 +48,31 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
     "select count(*) from %s where %s = ?"
 
   val insertRangeFullSt = conn prepareStatement (
-    insertFmt(6)
-    format (rangeTable,rtUser,rtFirst,rtLast,rtTotal,rtDeclared,rtFlags)
+    insertFmt(11)
+    format (rangeTable,rtUser,rtFirst,rtLast,
+            rtFirstTime,rtLastTime,rtTotal,rtDeclared,
+            rtFriends,rtReplyTwits,rtReplyUsers,rtFlags)
     )
 
   val selectRangeFullSt = conn prepareStatement (
-    selectFmt(5)
-    format (rtFirst,rtLast,rtTotal,rtDeclared,rtFlags,rangeTable,rtUser)
-    )
-
-  val selectRangeSt = conn prepareStatement (
-    selectFmt(3)
-    format (rtFirst,rtLast,rtTotal,rangeTable,rtUser)
+    selectFmt(10)
+    format (rtFirst,rtLast,rtFirstTime,rtLastTime,rtTotal,
+            rtDeclared,rtFriends,rtReplyTwits,rtReplyUsers,
+            rtFlags,rangeTable,rtUser)
     )
 
   val updateRangeFirstSt = conn prepareStatement (
-    updateFmt(2)
-    format (rangeTable,rtFirst,rtTotal,rtUser)
+    updateFmt(6)
+    format (rangeTable,rtFirst,rtFirstTime,rtTotal,
+            rtDeclared,rtReplyTwits,rtReplyUsers,rtUser)
     )
 
   val updateRangeLastSt = conn prepareStatement (
-    updateFmt(2)
-    format (rangeTable,rtLast,rtTotal,rtUser)
+    updateFmt(6)
+    format (rangeTable,rtLast,rtLastTime,rtTotal,
+            rtDeclared,rtReplyTwits,rtReplyUsers,rtUser)
     )
 
-  val selectRangeFirstSt = conn prepareStatement (
-    selectFmt(1)
-    format (rtFirst,rangeTable,rtUser)
-  )
-
-  val selectRangeLastSt = conn prepareStatement (
-    selectFmt(1)
-    format (rtLast,rangeTable,rtUser)
-  )
-
-  val selectRangeTotalSt = conn prepareStatement (
-    selectFmt(1)
-    format (rtTotal,rangeTable,rtUser)
-  )
-
-  val updateRangeDeclaredSt = conn prepareStatement (
-    updateFmt(1)
-    format (rangeTable,rtDeclared,rtUser)
-    )
-
-  val selectRangeDeclaredSt = conn prepareStatement (
-    selectFmt(1)
-    format (rtDeclared,rangeTable,rtUser)
-  )
 
   val updateRangeFlagsSt = conn prepareStatement (
     updateFmt(1)
@@ -107,74 +89,127 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
     format (rangeTable,rtUser)
   )
 
-  // unchecked: Some(e: T) will not be checked due to type erasure
-  def deStream[T] = { x: Any =>
-    x match { case Stream(e: T) => Some(e: T); case _ => None }
-  }
-
   // this cannot find x:
   // def deStream[T] = { case Stream(x: T) => x; case _ => None }
   // perhaps we should make deStream into an implicit for the selects below,
   // even back in RichSQL?  Ask @n8han! :)
 
   case class UserPG(uid: UserID) extends UserDB(uid: UserID) {
-
-
-    def uRange_=(r: UserTwitRange): Unit =
-      insertRangeFullSt << uid <<
-        r.range.first << r.range.last << r.range.total <<
-        r.declared << r.flags <<!
-
-    /* -- perhaps this original is simpler to follow, and not much longer either:
-    def range: Option[UserTwitRange] = {
-      val vs = selectRangeFullSt << uid <<! { rs => UserTwitRange(TwitRange(rs,rs,rs),rs,rs) }
-      vs match { case Stream(x) => Some(x); case _ => None }
-    }
-    */
-
-    def uRange: Option[UserTwitRange] = {
-      // println(selectRangeFullSt)
-      // NB would love to jigger precedences to get rid of enclosing ()
-      (selectRangeFullSt << uid <<! { rs => UserTwitRange(TwitRange(rs,rs,rs),rs,rs) }) ->:
-      deStream[UserTwitRange]
+    def exists: Boolean = {
+      // NB UserID hardcoded as nextInt, update to nextLong if desired
+      val count: Long = selectCountUserSt << uid <<! { _.nextInt } match {
+        case Stream(x) => x
+        case _ => 0
+      }
+      count match {
+        case 0 => false
+        case _ => true
+      }
     }
 
-    def range: Option[TwitRange] =
-      (selectRangeSt << uid <<! { rs => TwitRange(rs,rs,rs)}) ->:
-      deStream[TwitRange]
+
+    def setStats(us: UserStats): Unit =
+      insertRangeFullSt << uid << us.firstTwit << us.lastTwit <<
+      us.firstTwitTime << us.lastTwitTime << us.totalTwits <<
+      us.totalTwitsDeclared << us.numFriends <<
+      us.numReplyTwits << us.numReplyUsers << us.flags <<!
+
+    def set: Unit = stats match {
+      case Some(x) => setStats(x)
+      case _ => ()
+    }
+
+    def getStats: Option[UserStats] = {
+      (selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) }) ->:
+      deStream[UserStats]
+    }
+
+    def get: Unit = {
+      val all: Option[UserStats] = getStats
+      stats = all
+    }
 
     // adjust range
-    def rangeFirst_=(ar: AdjustRange): Unit =
-      updateRangeFirstSt << ar.endpoint << ar.total << uid <<!
+    def setRangeFirst: Unit = stats match {
+      case Some(x) => { import x._
+        updateRangeFirstSt << firstTwit << firstTwitTime <<
+                totalTwits << totalTwitsDeclared << numFriends <<
+                numReplyTwits << numReplyUsers << flags << x.uid <<! }
+      case _ => ()
+    }
 
-    def rangeLast_=(ar:  AdjustRange): Unit =
-      updateRangeLastSt << ar.endpoint << ar.total << uid <<!
+    def setRangeLast: Unit = stats match {
+      case Some(x) => { import x._
+        updateRangeFirstSt << lastTwit << lastTwitTime <<
+                totalTwits << totalTwitsDeclared << numFriends <<
+                numReplyTwits << numReplyUsers << flags << x.uid <<! }
+      case _ => ()
+    }
 
-    def rangeFirst: Option[TwitID] =
-      (selectRangeFirstSt << uid <<! { _.nextLong }) ->:
-      deStream[TwitID]
+    def getFirst: Option[TwitID] = stats match {
+      case Some(x) => Some(x.firstTwit)
+      case _ => None
+    }
 
-    def rangeLast:  Option[TwitID] =
-      (selectRangeFirstSt << uid <<! { _.nextLong }) ->:
-      deStream[TwitID]
+    def getLast:  Option[TwitID] = stats match {
+      case Some(x) => Some(x.lastTwit)
+      case _ => None
+    }
 
-    def totalTwits: Option[TwitCount] =
-      (selectRangeFirstSt << uid <<! { _.nextInt }) ->:
-      deStream[TwitCount]
+    def getTotalTwits: Option[TwitCount] = stats match {
+      case Some(x) => Some(x.totalTwits)
+      case _ => None
+    }
 
-    def declaredTwits_=(d: TwitCount): Unit =
-      updateRangeDeclaredSt << d << uid <<!
-
-    def declaredTwits: Option[TwitCount] =
-      (selectRangeFirstSt << uid <<! { _.nextInt }) ->:
-      deStream[TwitCount]
-
-    def flags_=(i: UserFlags): Unit =
+    def setFlags(i: UserFlags): Unit =
       updateRangeFlagsSt << i << uid <<!
 
-    def flags: Option[UserFlags] =
+    def getFlags: Option[UserFlags] =
       (selectRangeFlagsSt << uid <<! { _.nextInt}) ->:
       deStream[UserFlags]
+
+    
+    def updateUserForTwit(ut: UserTwit) = {
+      val UserTwit(u,t) = ut
+      val tid = t.tid
+
+      val (numReplyTwitsAdd, numReplyUsersAdd) =
+        t.reply match {
+          case Some(x) => x.replyTwit match {
+            case Some(_) => (1,0)
+            case _ => (0,1)
+          }
+          case _ => (0,0)
+        }
+
+      stats match { 
+        case Some(x) => { import x._
+          totalTwits += 1
+          totalTwitsDeclared = u.statusesCount
+          numFriends = u.friendsCount
+          numReplyTwits += numReplyTwitsAdd
+          numReplyUsers += numReplyUsersAdd
+          if (tid < firstTwit) {
+            err.println("user "+x.uid+" going backward at twit "+tid)
+            firstTwit = tid
+            firstTwitTime = t.time
+            setRangeFirst
+          } else if (tid > lastTwit) {
+            lastTwit = tid
+            lastTwitTime = t.time
+            setRangeLast
+          }
+        }
+        case _ => { stats =
+            Some(UserStats(
+              uid, tid, tid, t.time, t.time, 1,
+              u.statusesCount, u.friendsCount,
+              numReplyTwitsAdd, numReplyUsersAdd, 0
+            ))
+            set
+        }
+      }
+    }
   }
 
   // can replace hard-coded table with format
@@ -182,24 +217,41 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
   val testRangeSetupSts = Array (
   "drop table if exists " + rangeTable,
   "create table " + rangeTable +
-  """
-    (uid integer not null,
-    first bigint not null,
-    last bigint not null,
-    total integer not null,
-    declared integer not null,
-    flags integer not null);
-  """)
+  """(
+    %s integer not null,
+    %s bigint not null,
+    %s bigint not null,
+    %s timestamp not null,
+    %s timestamp not null,
+    %s integer not null,
+    %s integer not null,
+    %s integer not null,
+    %s integer not null,
+    %s integer not null,
+    %s integer not null);""" format (
+       rtUser,
+       rtFirst,
+       rtLast,
+       rtFirstTime,
+       rtLastTime,
+       rtTotal,
+       rtDeclared,
+       rtFriends,
+       rtReplyTwits,
+       rtReplyUsers,
+       rtFlags)
+    )
 
   def testRange = {
     implicit val s: Statement = conn << testRangeSetupSts
 
     val u1 = UserPG(1)
 
-    u1.uRange = UserTwitRange(TwitRange(8,23,4),4,0)
+    val now = new DateTime(new java.util.Date)
+    u1.setStats(UserStats(u1.uid,88,111,now,now,25,27,33,5,15,0))
 
-    val ur = u1.uRange
-    println(ur)
+    val stats: Option[UserStats] = u1.getStats
+    println(stats)
     // assert can go here. u1.uRange.toString == "..."
   }
 
@@ -305,16 +357,27 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
   val testTwitSetupSts = Array (
     "drop table if exists " + twitTable
     , "create table " + twitTable +
-    """(tid bigint not null,
-    uid integer not null,
-    time timestamp not null,
-    text varchar(140) not null)"""
+    """(
+    %s bigint not null,
+    %s integer not null,
+    %s timestamp not null,
+    %s varchar(140) not null)""" format (
+            ttTwit,
+            ttUser,
+            ttTime,
+            ttText
+            )
     , "drop table if exists " + replyTable
     , "create table " + replyTable +
-    """(tid bigint not null,
-    trep bigint, -- can often be null
-    urep integer not null)
-    """)
+    """(
+    %s bigint not null,
+    %s bigint, -- can often be null
+    %s integer not null)""" format (
+            rrTwit,
+            rrReplyTwit,
+            rrReplyUser
+            )
+    )
 
   def testTwit = {
     implicit val s: Statement = conn << testTwitSetupSts
@@ -337,5 +400,25 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
     val t2full = t2.getFull
     println(t2full)
+  }
+
+
+  def insertUserTwit(ut: UserTwit): Unit = {
+    val UserTwit(user,twit) = ut
+
+    val t = TwitPG(twit.tid)
+
+    if (t.exists) {
+      err.println("ALREADY HAVE TWIT "+t.tid)
+    } else {
+      // start transaction
+      val u = UserPG(user.uid)
+      // may declare that as (u,t)
+      // as it's already matched:
+      u.updateUserForTwit(ut)
+      t put twit
+      // commit
+    }
+
   }
 }

@@ -130,6 +130,7 @@ object Status {
               val name: String = extractField(user,"name","user")
               val screenName: String = extractField(user,"screen_name","user")
               val statusesCount: Int = extractField(user,"statuses_count","user")
+              val friendsCount: Int = extractField(user,"friends_count","user")
               val userCreatedAt: String = extractField(user,"created_at","user")
               val userTime: DateTime = try { dateTimeFmt.parseDateTime(userCreatedAt) }
                 catch { case _: IllegalArgumentException => throw BadStatus("cannot parse user time") }
@@ -153,7 +154,7 @@ object Status {
               // println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
               //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
-              val uRes = User(uid, name, screenName, statusesCount, userTime, location, utcOffset)
+              val uRes = User(uid, name, screenName, statusesCount, friendsCount, userTime, location, utcOffset)
               val replyTwitOpt: Option[ReplyTwit] =
                 try {
                   replyUser match {
@@ -225,7 +226,7 @@ object Status {
       err.println("Inserter "+id+" started, object "+self)
       loop {
         react {
-          case UserTwit(user, twit) => {
+          case ut @ UserTwit(user, twit) => {
              print(user.name+" "+twit.time+": "+twit.text+
               ", tid="+twit.tid+", uid="+user.uid)
              twit.reply match {
@@ -234,8 +235,9 @@ object Status {
                case _ => ()
              }
             println
-            val t = tdb.TwitPG(twit.tid)
-            t put twit
+            // val t = tdb.TwitPG(twit.tid)
+            // t put twit
+            tdb.insertUserTwit(ut)
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
