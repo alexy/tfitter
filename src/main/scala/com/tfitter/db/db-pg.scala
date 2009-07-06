@@ -263,6 +263,9 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     val stats: Option[UserStats] = u1.getStats
     println(stats)
     // assert can go here. u1.uRange.toString == "..."
+    
+        
+    conn.commit // create table for future use!
   }
 
 
@@ -427,6 +430,8 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
     val t2full = t2.getFull
     println(t2full)
+
+    conn.commit // create tables for future use!
   }
 
 
@@ -451,7 +456,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       }
     } catch {
       case e => {
-        // err.println(e)
+        err.println(e)
         err.println("ROLLBACK uid="+uid+" tid="+tid)
         conn.rollback
       }
