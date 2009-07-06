@@ -3,8 +3,16 @@ package com.tfitter.db
 import System.err
 import org.joda.time.DateTime
 
-class TwitterPG(jdbcURL: String, user: String, pwd: String,
-             rangeTable: String, twitTable: String, replyTable: String) extends TwitterDB {
+case class JdbcArgs(
+        url: String,
+        user: String,
+        pwd: String,
+        rangeTable: String,
+        twitTable: String,
+        replyTable: String)
+  
+class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
+  val JdbcArgs(jdbcUrl,jdbcUser,jdbcPwd,rangeTable,twitTable,replyTable) = jdbcArgs
   import types._
 
   import java.sql.{DriverManager, Connection, ResultSet, PreparedStatement, Statement, Date}
@@ -27,7 +35,8 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
 
   import la.scala.sql.rich.RichSQL._
 
-  implicit val conn = connect(jdbcURL, user, pwd)
+  // could use connection properties to set user, pwd, ssl, etc.
+  implicit val conn = connect(jdbcUrl, jdbcUser, jdbcPwd)
   conn.setAutoCommit(false)
 
   def commaSeparated(s: String, n: Int): String = 

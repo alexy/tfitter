@@ -5,7 +5,7 @@ import java.io.PrintStream
 import org.apache.commons.lang.StringEscapeUtils.unescapeHtml
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,TwitterPG,DBError}
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,JdbcArgs,TwitterPG,DBError}
 
 import scala.io.Source
 import scala.actors.Actor
@@ -259,9 +259,8 @@ object Status {
     }
   }
 
-
-  class PGInserter(override val id: Int) extends Inserter(id) {
-    val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
+  class PGInserter(override val id: Int, jdbcArgs: JdbcArgs) extends Inserter(id) {
+    val tdb = new TwitterPG(jdbcArgs)
     def act() = {
       err.println("Inserter "+id+" started, object "+self)
       extractor ! self
@@ -330,6 +329,11 @@ object Status {
     import la.scala.sql.rich.RichSQL._
 
     val numThreads = Config.numCores
+    val jdbcArgs = {
+      import Config.{jdbcUrl,jdbcUser,jdbcPwd,rangeTable,twitTable,replyTable}
+      JdbcArgs(jdbcUrl,jdbcUser,jdbcPwd,rangeTable,twitTable,replyTable)
+    }
+
     
     // make this a parameter:
     val showingProgress = true
@@ -346,7 +350,7 @@ object Status {
     
     // before I added type annotation List[Inserter] below, 
     // I didn't realize I'm not using a List but get a Range...  added .toList below
-    val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_))
+    val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_,jdbcArgs))
 
     val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
 
