@@ -228,7 +228,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   "drop table if exists " + rangeTable,
   "create table " + rangeTable +
   """(
-    %s integer not null,
+    %s integer not null primary key,
     %s bigint not null,
     %s bigint not null,
     %s timestamp not null,
@@ -388,7 +388,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     "drop table if exists " + twitTable
     , "create table " + twitTable +
     """(
-    %s bigint not null,
+    %s bigint not null primary key,
     %s integer not null,
     %s timestamp not null,
     %s varchar(140) not null)""" format (
@@ -400,7 +400,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     , "drop table if exists " + replyTable
     , "create table " + replyTable +
     """(
-    %s bigint not null,
+    %s bigint not null primary key,
     %s bigint, -- can often be null
     %s integer not null)""" format (
             rrTwit,
@@ -443,17 +443,16 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
       val t = TwitPG(tid)
 
-      if (t.exists) {
-        err.println("ALREADY HAVE TWIT "+tid)
-      } else {
-        // conn.begin
-        val u = UserPG(uid)
+      // if (t.exists) {
+      //  err.println("ALREADY HAVE TWIT "+tid)
+      // } else ...
+      // conn.begin
+      t put twit // will cause exception if present and rollback
+      val u = UserPG(uid)
         // may declare that as (u,t)
         // as it's already matched:
-        u.updateUserForTwit(ut)
-        t put twit
-        conn.commit
-      }
+      u.updateUserForTwit(ut)
+      conn.commit
     } catch {
       case e => {
         err.println(e)
