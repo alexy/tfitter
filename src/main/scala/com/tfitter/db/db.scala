@@ -7,20 +7,38 @@ object types {
   type UserID = Int
   type TwitID = Long
   type TwitCount = Int
+  type FriendsCount = Int
   type UserFlags = Int
   type UTCOffset = Byte
 }
 import types._
 
+// passed from JSON extractor to inserter
 case class User (  
   uid: UserID,
   name: String,
   screenName: String,
-  statusesCount: Int,
+  statusesCount: Int, // declared, embedded in each status
+  friendsCount: FriendsCount,
   time: DateTime,
-  location: String,
-  utcOffset: UTCOffset
+  location: Option[String],
+  utcOffset: Option[UTCOffset]
   )
+
+// stored in the database
+case class UserStats (
+  val uid: UserID, // the only immutable
+  var firstTwit: TwitID,
+  var lastTwit: TwitID,
+  var firstTwitTime: DateTime,
+  var lastTwitTime: DateTime,
+  var totalTwits: TwitCount,
+  var totalTwitsDeclared: TwitCount,
+  var numFriends: FriendsCount,
+  var numReplyTwits: TwitCount,
+  var numReplyUsers: TwitCount,
+  var flags: Int
+)
 
 case class ReplyTwit (
   tid: TwitID,
@@ -68,14 +86,15 @@ case class UserTwitRange (
 // moving either range's end means 
 // also adjusting the count
 case class AdjustRange (
-  endpoint: TwitID, 
+  twit: TwitID,
+  time: DateTime,
   total: TwitCount
 )
 
+case class DBError(reason: String) extends Exception(reason)
+
 trait TwitterDB {
-  
-  class DBError extends Exception
-  
+
   // could replace object by a class with parameter UserID
   // and create short-lived objects per user
 
@@ -86,38 +105,39 @@ trait TwitterDB {
   // can either cut the params here or there?
   
   abstract class UserDB(uid: UserID) {
+
+    def exists: Boolean
+
+    var stats: Option[UserStats] = None // var
+    def getStats: Option[UserStats]
+    def get // sets stats in the database
+    // call filling stats from DB:
+    get // stats = getStats
     
+    // write all fields back
+    def setStats(us: UserStats)
+    def set // from stats in the database
+
+    // adjust range
+    def setRangeFirst
+    def setRangeLast
+  
+    def getFirst:      Option[TwitID]
+    def getLast:       Option[TwitID]
+    def getTotalTwits: Option[TwitCount]
+    // could do more getters if needed
+
     // flags for the range status
     // we structure them so that `good` cases are all 0
-    
     val Seq(retry, needsPast, pastUnreachable) = (0 to 2).map(1 << _)
-          
-    // set/get user range as a whole
-    def uRange_=(r: UserTwitRange): Unit
-    def uRange: Option[UserTwitRange]
-    def range: Option[TwitRange]
-  
-    // adjust range
-    def rangeFirst_=(ar: AdjustRange)
-    def rangeLast_=(ar:  AdjustRange)
-  
-    def rangeFirst: Option[TwitID]
-    def rangeLast:  Option[TwitID]
-    def totalTwits: Option[TwitCount]
-  
-    def declaredTwits_=(d: TwitCount): Unit
-    def declaredTwits: Option[TwitCount]
-  
-    // ideally, we'd change flags by individual defs,
-    // one by one, then they'd be flushed to disk
-    // along with any other changes -- can be done
-    // in a flush method called by the creator of 
-    // this object
-  
-  /*  
-    def flags_=(i: UserFlags): Unit
-    def flags: Option[UserFlags]
+    def setFlags(i: UserFlags): Unit
+    def getFlags: Option[UserFlags]
 
+    // absorb a new UserTwit record
+    def updateUserForTwit(ut: UserTwit)
+
+
+  /*
     def retry_=(b: Boolean): Unit
     def retry: Boolean
     
@@ -127,11 +147,9 @@ trait TwitterDB {
     def pastUnreachable_=(b: Boolean): Unit
     def pastUnreachable: Boolean
   */
-    // def retryUser :Boolean
-    // def retryUser_=(flag: Boolean) :Unit
   }
 
-  case class Duplicate(tid: TwitID) extends DBError
+  // case class Duplicate(tid: TwitID) extends DBError
 
   abstract class TwitDB(tid: TwitID) {
     def exists: Boolean
@@ -141,6 +159,8 @@ trait TwitterDB {
     def getCore: Option[Twit] // can raise NotFound
     def getFull: Option[Twit] // can raise NotFound
   }
+  
+  def insertUserTwit(ut: UserTwit)
 
 }
 

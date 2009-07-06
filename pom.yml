@@ -32,6 +32,7 @@ dependencies:
   - { groupId: org.scala-lang, artifactId: scala-library, version: "${scala.version}" }
   - { groupId: org.scala-lang, artifactId: scala-compiler, version: "${scala.version}" }
   - { groupId: joda-time, artifactId: joda-time, version: 1.6 }
+  - { groupId: commons-lang, artifactId: commons-lang, version: 2.4 }
   - { groupId: com.twitter, artifactId: "scala-json_${scala.version}", version: 1.0 }
   - { groupId: la.scala.sql, artifactId: "rich_${scala.version}", version: 1.0 }
   - { groupId: la.scala, artifactId: "util_${scala.version}", version: 1.0 }
