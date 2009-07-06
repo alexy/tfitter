@@ -2,6 +2,7 @@ package com.tfitter
 
 import System.err
 import java.io.PrintStream
+import org.apache.commons.lang.StringEscapeUtils.unescapeHtml
 
 import com.tfitter.db.types._
 import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,TwitterPG,DBError}
@@ -69,20 +70,32 @@ object Status {
     import org.joda.time.format.DateTimeFormat
     // for extracting the time
     val dateTimeFmt = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z YYYY")
-    
-    def extractField[T](m: Map[String,Any], field: String, whose: String)
-      (implicit manifest: scala.reflect.Manifest[T]): T = 
+
+    // NB asInstanceOf[T] gets erased and needs to be rewritten
+    def extractInt(m: Map[String,Any], field: String, whose: String): Int = 
       m.get(field) match {
-        case Some(x) => x.asInstanceOf[T]
+        case Some(x:Int) => x.asInstanceOf[Int]
         case _ => throw BadStatus(whose+" has no "+field)
       }
       
-    def extractNullableField[T](m: Map[String,Any], field: String, whose: String)
-      (implicit manifest: scala.reflect.Manifest[T]): Option[T] =
+    def extractLong(m: Map[String,Any], field: String, whose: String): Long = 
+      m.get(field) match {
+        case Some(x:Long) => x.asInstanceOf[Long]
+        case _ => throw BadStatus(whose+" has no "+field)
+      }
+
+    def extractString(m: Map[String,Any], field: String, whose: String): String =
+      m.get(field) match {
+        case Some(x:String) => x.asInstanceOf[String]
+        case _ => throw BadStatus(whose+" has no "+field)
+      }
+
+    def extractNullableInt(m: Map[String,Any], field: String, whose: String)
+      : Option[Int] =
       m.get(field) match {
         case Some(null) => None
-        case Some(x) => Some(x.asInstanceOf[T])
-        case _ => throw BadStatus(whose+" has no "+field)
+        case Some(x:Int) => Some(x)
+        case _ => throw BadStatus(whose+" has no nullable Int "+field)
       }
 
     def extractNullableLong(m: Map[String,Any], field: String, whose: String)
@@ -91,7 +104,15 @@ object Status {
         case Some(null) => None
         case Some(x:Int) => Some(x.toLong)
         case Some(x:Long) => Some(x)
-        case _ => throw BadStatus(whose+" has no Long "+field)
+        case _ => throw BadStatus(whose+" has no nullable Long "+field)
+      }
+
+    def extractNullableString(m: Map[String,Any], field: String, whose: String)
+      : Option[String] =
+      m.get(field) match {
+        case Some(null) => None
+        case Some(x:String) => Some(x)
+        case _ => throw BadStatus(whose+" has no nullable String "+field)
       }
 
     // // anyToMap without cast, but with erasure warning
@@ -135,29 +156,28 @@ object Status {
               val user = anyToMap(userAny)
         
               // user
-              val uid: Int = extractField(user,"id","user")        
-              val name: String = extractField(user,"name","user")
-              val screenName: String = extractField(user,"screen_name","user")
-              val statusesCount: Int = extractField(user,"statuses_count","user")
-              val friendsCount: Int = extractField(user,"friends_count","user")
-              val userCreatedAt: String = extractField(user,"created_at","user")
+              val uid: Int = extractInt(user,"id","user")        
+              val name: String = extractString(user,"name","user")
+              val screenName: String = extractString(user,"screen_name","user")
+              val statusesCount: Int = extractInt(user,"statuses_count","user")
+              val friendsCount: Int = extractInt(user,"friends_count","user")
+              val userCreatedAt: String = extractString(user,"created_at","user")
               val userTime: DateTime = try { dateTimeFmt.parseDateTime(userCreatedAt) }
                 catch { case _: IllegalArgumentException => throw BadStatus("cannot parse user time") }
-              val location: String = extractField(user,"location","user")
-              // can't seem to declare it :UTCOffset right away: / gives type error!
-              // also have to give explicit type parameter, otherwise were getting,
-              // error: value / is not a member of Nothing
-              val utcOffsetInt: Int = extractField[Int](user,"utc_offset","user") / 3600
-              val utcOffset: UTCOffset = utcOffsetInt.asInstanceOf[UTCOffset]
-        
+              val location: Option[String] = extractNullableString(user,"location","user")
+              val utcOffsetInt: Option[Int] = extractNullableInt(user,"utc_offset","user")
+              val utcOffset: Option[UTCOffset] = utcOffsetInt match {
+                case Some(x) => Some((x / 3600).toByte)
+                case _ => None
+              }
               // twit
-              val tid: Long = extractField(twit,"id","twit")
-              val twitCreatedAt: String = extractField(twit,"created_at","twit")
+              val tid: Long = extractLong(twit,"id","twit")
+              val twitCreatedAt: String = extractString(twit,"created_at","twit")
               val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
               catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
-              val twitText: String = extractField(twit, "text", "twit")
+              val twitText: String = unescapeHtml(extractString(twit, "text", "twit"))
               val replyTwit: Option[TwitID] = extractNullableLong(twit,"in_reply_to_status_id","twit")
-              val replyUser: Option[UserID] = extractNullableField(twit,"in_reply_to_user_id","twit")
+              val replyUser: Option[UserID] = extractNullableInt(twit,"in_reply_to_user_id","twit")
       
         
               // println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+

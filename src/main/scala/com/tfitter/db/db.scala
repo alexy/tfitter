@@ -21,8 +21,8 @@ case class User (
   statusesCount: Int, // declared, embedded in each status
   friendsCount: FriendsCount,
   time: DateTime,
-  location: String,
-  utcOffset: UTCOffset
+  location: Option[String],
+  utcOffset: Option[UTCOffset]
   )
 
 // stored in the database
