@@ -78,13 +78,22 @@ object Status {
       }
       
     def extractNullableField[T](m: Map[String,Any], field: String, whose: String)
-      (implicit manifest: scala.reflect.Manifest[T]): Option[T] = 
+      (implicit manifest: scala.reflect.Manifest[T]): Option[T] =
       m.get(field) match {
         case Some(null) => None
         case Some(x) => Some(x.asInstanceOf[T])
         case _ => throw BadStatus(whose+" has no "+field)
       }
-    
+
+    def extractNullableLong(m: Map[String,Any], field: String, whose: String)
+      : Option[Long] =
+      m.get(field) match {
+        case Some(null) => None
+        case Some(x:Int) => Some(x.toLong)
+        case Some(x:Long) => Some(x)
+        case _ => throw BadStatus(whose+" has no Long "+field)
+      }
+
     // // anyToMap without cast, but with erasure warning
     // def anyToMap: Any => Map[String,Any] = {
     //   case m: Map[String,Any] => m
@@ -147,7 +156,7 @@ object Status {
               val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
               catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
               val twitText: String = extractField(twit, "text", "twit")
-              val replyTwit: Option[TwitID] = extractNullableField[TwitID](twit,"in_reply_to_status_id","twit")
+              val replyTwit: Option[TwitID] = extractNullableLong(twit,"in_reply_to_status_id","twit")
               val replyUser: Option[UserID] = extractNullableField(twit,"in_reply_to_user_id","twit")
       
         

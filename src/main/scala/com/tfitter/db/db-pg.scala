@@ -338,23 +338,27 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
       try {
         t.reply match {
           case Some(r) =>
-          try {
-            insertReplySt << tid << r.replyTwit /* Some(2500000L) */ << r.replyUser <<!
-          } catch {
-            case e: ClassCastException =>
-                err.println("CAST:"+e+"[ tid="+tid+" rtid="+r.replyTwit+" ruid="+r.replyUser+"]")              
-                val rtLongOpt =  r.replyTwit match {
-                case Some(tid) => Some(tid.toLong)
-                case _ => None
-              }
-              insertReplySt << tid << rtLongOpt << r.replyUser.toLong <<!              
-
-          }
+            try {
+              insertReplySt << tid << r.replyTwit /* Some(2500000L) */ << r.replyUser <<!
+            } catch {
+              case e: ClassCastException =>
+                  err.println("CAST:"+e+" [ tid="+tid+" rtid="+r.replyTwit+" ruid="+r.replyUser+" ]")
+                  err.print("casting meat to Long: ")
+                  val rtLongOpt = r.replyTwit match {
+                    case Some(tid) =>
+                      val res = Some(tid.toLong)
+                      err.println(res)
+                      res
+                    case _ => None
+                  }
+                  err.println("trying "+rtLongOpt)
+                  insertReplySt << tid << rtLongOpt << r.replyUser.toLong <<!
+            }
           case _ => ()
         }
       } catch {
         case e: ClassCastException => err.println("STILL CAST:"+e)
-           throw DBError("CANNOT PUT TWIT "+tid)
+           error("CANNOT PUT TWIT "+tid)
         case e => err.println("REPLY:"+e)
           throw DBError("CANNOT PUT TWIT "+tid)
       }
