@@ -86,19 +86,28 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="extract.scala" pinned="false" current="false" current-in-tab="false">
+          <file leaf-file-name="extract.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="335" column="1" selection-start="12678" selection-end="12857" vertical-scroll-proportion="0.0">
+                <state line="335" column="1" selection-start="12678" selection-end="12857" vertical-scroll-proportion="7.56">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Main.scala" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="Main.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/Main.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="26" column="36" selection-start="919" selection-end="919" vertical-scroll-proportion="0.6933333">
+                <state line="26" column="36" selection-start="919" selection-end="919" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="filter.properties" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/main/filters/filter.properties">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="6" column="0" selection-start="15" selection-end="129" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -567,13 +576,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/filters/filter.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="21" selection-start="128" selection-end="128" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/application.properties">
       <provider selected="true" editor-type-id="text-editor">
         <state line="7" column="25" selection-start="287" selection-end="287" vertical-scroll-proportion="0.0">
@@ -595,16 +597,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/Main.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="335" column="1" selection-start="12678" selection-end="12857" vertical-scroll-proportion="0.0">
+        <state line="26" column="36" selection-start="919" selection-end="919" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/Main.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/filters/filter.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="26" column="36" selection-start="919" selection-end="919" vertical-scroll-proportion="0.6933333">
+        <state line="6" column="0" selection-start="15" selection-end="129" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="335" column="1" selection-start="12678" selection-end="12857" vertical-scroll-proportion="7.56">
           <folding />
         </state>
       </provider>

@@ -74,19 +74,20 @@ object Status {
     // NB asInstanceOf[T] gets erased and needs to be rewritten
     def extractInt(m: Map[String,Any], field: String, whose: String): Int = 
       m.get(field) match {
-        case Some(x:Int) => x.asInstanceOf[Int]
+        case Some(x:Int) => x
         case _ => throw BadStatus(whose+" has no "+field)
       }
       
     def extractLong(m: Map[String,Any], field: String, whose: String): Long = 
       m.get(field) match {
-        case Some(x:Long) => x.asInstanceOf[Long]
+        case Some(x:Int)  => x.toLong
+        case Some(x:Long) => x
         case _ => throw BadStatus(whose+" has no "+field)
       }
 
     def extractString(m: Map[String,Any], field: String, whose: String): String =
       m.get(field) match {
-        case Some(x:String) => x.asInstanceOf[String]
+        case Some(x:String) => x
         case _ => throw BadStatus(whose+" has no "+field)
       }
 
