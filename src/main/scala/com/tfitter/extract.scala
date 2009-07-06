@@ -203,7 +203,10 @@ object Status {
 
               // do we need throttling here?
               // err.println("parser "+id+" ["+self+"] sends its inserter "+inserter.id+" ["+inserter+"] twit "+tRes.tid)
-              inserter ! UserTwit(uRes,tRes)              
+              react {
+                case a: Inserter =>
+                  inserter ! UserTwit(uRes,tRes)
+              }
             }
             catch {
               case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+s)
@@ -216,17 +219,23 @@ object Status {
             err.println("Parser "+id+" exiting.")
             exit() 
           }
-          case msg => err.println("Parser "+id+" unhandled message:"+msg)
+          // inserter's message may be in queue already, not handled here,
+          // so no "unhandled" catch-all anymore:
+          // case msg => err.println("Parser "+id+" unhandled message:"+msg)
           }
         }
       }
     }
 
-  abstract class Inserter(val id: Int) extends Actor
+  abstract class Inserter(val id: Int) extends Actor {
+    var extractor: JSONExtractor = null
+    def setExtractor(e: JSONExtractor): Unit = extractor = e
+  }
   
   class Printer(override val id: Int) extends Inserter(id) {
     def act() = {
       err.println("Inserter "+id+" started, object "+self)
+      extractor ! self      
       loop {
         react {
           case UserTwit(user, twit) => {
@@ -238,6 +247,7 @@ object Status {
                case _ => ()
              }
             println
+            extractor ! self
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
@@ -254,6 +264,7 @@ object Status {
     val tdb = new TwitterPG("jdbc:postgresql:twitter","alexyk","","testRange","testTwit","testReply")
     def act() = {
       err.println("Inserter "+id+" started, object "+self)
+      extractor ! self
       loop {
         react {
           case ut @ UserTwit(_,_) => { /* ut @ UserTwit(user,twit)
@@ -273,6 +284,8 @@ object Status {
             } catch {
               case DBError(msg) => err.println("DB ERROR: "+msg)
             }
+
+            extractor ! self
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
@@ -304,6 +317,9 @@ object Status {
 
     val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
 
+    (parsers zip inserters) foreach { case (parser, inserter) =>
+      inserter.setExtractor(parser) }
+    
     readLines.start
     inserters foreach (_.start)
     parsers foreach (_.start)
@@ -333,6 +349,9 @@ object Status {
     val inserters: List[PGInserter] = (0 until numThreads).toList map (new PGInserter(_))
 
     val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
+
+    (parsers zip inserters) foreach { case (parser, inserter) =>
+      inserter.setExtractor(parser) }
 
     readLines.start
     inserters foreach (_.start)

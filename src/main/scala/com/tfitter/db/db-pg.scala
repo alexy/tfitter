@@ -191,7 +191,7 @@ class TwitterPG(jdbcURL: String, user: String, pwd: String,
           numReplyTwits += numReplyTwitsAdd
           numReplyUsers += numReplyUsersAdd
           if (tid < firstTwit) {
-            err.println("user "+x.uid+" going backward at twit "+tid)
+            // err.println("user "+x.uid+" going backward at twit "+tid)
             firstTwit = tid
             firstTwitTime = t.time
             setRangeFirst
