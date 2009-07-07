@@ -5,8 +5,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tfitter.ipr" afterPath="$PROJECT_DIR$/tfitter.ipr" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tfitter.iml" afterPath="$PROJECT_DIR$/tfitter.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.yml" afterPath="$PROJECT_DIR$/pom.yml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/tfitter/db/db.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tfitter.iws" afterPath="$PROJECT_DIR$/tfitter.iws" />
     </list>
@@ -81,7 +79,7 @@
           <file leaf-file-name="pom.yml" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/pom.yml">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="38" column="69" selection-start="1799" selection-end="1799" vertical-scroll-proportion="0.0">
+                <state line="40" column="69" selection-start="1912" selection-end="1912" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -90,7 +88,7 @@
           <file leaf-file-name="extract.scala" pinned="false" current="true" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="149" column="81" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.6202247">
+                <state line="256" column="83" selection-start="9800" selection-end="9800" vertical-scroll-proportion="0.83820224">
                   <folding />
                 </state>
               </provider>
@@ -452,7 +450,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="18" y="22" width="1420" height="860" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Web Preview" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
       <window_info id="Dataflow to this" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
@@ -469,7 +467,7 @@
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.660787" order="1" side_tool="false" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971507" sideWeight="0.5" order="7" side_tool="false" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3283582" sideWeight="0.5" order="2" side_tool="false" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39891452" sideWeight="0.5" order="3" side_tool="false" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
@@ -565,7 +563,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.yml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="69" selection-start="1799" selection-end="1799" vertical-scroll-proportion="0.0">
+        <state line="40" column="69" selection-start="1912" selection-end="1912" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -614,7 +612,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/tfitter/extract.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="149" column="81" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.6202247">
+        <state line="256" column="83" selection-start="9800" selection-end="9800" vertical-scroll-proportion="0.83820224">
           <folding />
         </state>
       </provider>

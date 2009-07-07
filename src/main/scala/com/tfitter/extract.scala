@@ -254,6 +254,7 @@ object Status {
             }
             catch {
               case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+s)
+              case e: JsonParseException => err.println("*** Jackson JSON Error:"+e)
             }
             finally {
               readLines ! self
