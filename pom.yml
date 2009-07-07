@@ -36,6 +36,8 @@ dependencies:
   - { groupId: com.twitter, artifactId: "scala-json_${scala.version}", version: 1.0 }
   - { groupId: la.scala.sql, artifactId: "rich_${scala.version}", version: 1.0 }
   - { groupId: la.scala, artifactId: "util_${scala.version}", version: 1.0 }
+  - { groupId: org.codehaus.jackson, artifactId: jackson-core-lgpl, version: 1.1.0 }
+  - { groupId: org.codehaus.jackson, artifactId: jackson-mapper-lgpl, version: 1.1.0 }
 reporting:
   plugins:
     - { artifactId: maven-scala-plugin, groupId: org.scala-tools }
@@ -47,6 +49,7 @@ build:
     - { directory: src/main/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
+      version: 2.11
       executions:
         - goals: [ compile, testCompile ]
       groupId: org.scala-tools
@@ -57,6 +60,7 @@ build:
         launchers:
           - { mainClass: com.tfitter.Status, id: st1 }
           - { mainClass: com.tfitter.Main, id: go1 }
+          - { mainClass: braver.jackson.Main, id: jack }
     - artifactId: maven-compiler-plugin
       groupId: org.apache.maven.plugins
       configuration:

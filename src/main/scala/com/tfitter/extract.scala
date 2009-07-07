@@ -2,6 +2,7 @@ package com.tfitter
 
 import System.err
 import java.io.PrintStream
+import org.codehaus.jackson._
 import org.apache.commons.lang.StringEscapeUtils.unescapeHtml
 
 import com.tfitter.db.types._
@@ -70,65 +71,65 @@ object Status {
     import org.joda.time.format.DateTimeFormat
     // for extracting the time
     val dateTimeFmt = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z YYYY")
+    val factory: JsonFactory = new JsonFactory
 
-    // NB asInstanceOf[T] gets erased and needs to be rewritten
-    def extractInt(m: Map[String,Any], field: String, whose: String): Int = 
-      m.get(field) match {
-        case Some(x:Int) => x
-        case _ => throw BadStatus(whose+" has no "+field)
-      }
-      
-    def extractLong(m: Map[String,Any], field: String, whose: String): Long = 
-      m.get(field) match {
-        case Some(x:Int)  => x.toLong
-        case Some(x:Long) => x
-        case _ => throw BadStatus(whose+" has no "+field)
-      }
-
-    def extractString(m: Map[String,Any], field: String, whose: String): String =
-      m.get(field) match {
-        case Some(x:String) => x
-        case _ => throw BadStatus(whose+" has no "+field)
-      }
-
-    def extractNullableInt(m: Map[String,Any], field: String, whose: String)
-      : Option[Int] =
-      m.get(field) match {
-        case Some(null) => None
-        case Some(x:Int) => Some(x)
-        case _ => throw BadStatus(whose+" has no nullable Int "+field)
-      }
-
-    def extractNullableLong(m: Map[String,Any], field: String, whose: String)
-      : Option[Long] =
-      m.get(field) match {
-        case Some(null) => None
-        case Some(x:Int) => Some(x.toLong)
-        case Some(x:Long) => Some(x)
-        case _ => throw BadStatus(whose+" has no nullable Long "+field)
-      }
-
-    def extractNullableString(m: Map[String,Any], field: String, whose: String)
-      : Option[String] =
-      m.get(field) match {
-        case Some(null) => None
-        case Some(x:String) => Some(x)
-        case _ => throw BadStatus(whose+" has no nullable String "+field)
-      }
-
-    // // anyToMap without cast, but with erasure warning
-    // def anyToMap: Any => Map[String,Any] = {
-    //   case m: Map[String,Any] => m
-    //   case _ => throw BadStatus("anyToMap: not a Map[String,Any]")
-    // }
-
-    // anyToMap with the cast, but without the erasure warning
-    def anyToMap: Any => Map[String,Any] = {
-      case m: Map[_,_] => try { m.asInstanceOf[Map[String,Any]] }
-        catch { case _: ClassCastException => throw BadStatus("data is not a Map[String,Any]") }
-          // we need continue here and below, not bail on error
-      case _ => throw BadStatus("Not a Twitter status as Map[_,_]")
+    
+    def getString(s:Option[String], name: String) = {
+      s getOrElse { throw BadStatus("empty "+name) }
     }
+    
+    def getInt(s:Option[String], name: String) = {
+      val meat = s getOrElse { throw BadStatus("empty "+name) }
+      try {
+        meat.toInt
+      } catch {
+        case _:NumberFormatException => throw BadStatus("bad Int in "+name)
+      }
+    }
+    def getLong(s:Option[String], name: String) = {
+      val meat = s getOrElse { throw  BadStatus("empty "+name) }
+      try {
+        meat.toLong
+      } catch {
+        case _:NumberFormatException => throw BadStatus("bad Long in "+name)
+      }
+    }
+    
+    def getDateTime(s:Option[String], name: String) = {
+      val meat = s getOrElse { throw BadStatus("empty "+name) }
+      try {
+        dateTimeFmt.parseDateTime(meat)
+      } catch {
+        case _:IllegalArgumentException => throw BadStatus("bad DateTime in "+name)
+      }
+    }
+    
+    def getIntOpt(s:Option[String], name: String) =
+      s match {
+        case Some(meat) =>
+          try { 
+            Some(meat.toInt)
+          } catch {
+            case _:NumberFormatException => throw BadStatus("bad Int Opt in "+name+"["+meat+"]")
+          }
+        case _ => None
+      }
+    def getLongOpt(s:Option[String], name: String) =
+      s match {
+        case Some(meat) =>
+          try { 
+            Some(meat.toLong)
+          } catch {
+            case _:NumberFormatException => throw BadStatus("bad Long Opt in "+name+"["+meat+"]")
+          }
+        case _ => None
+      }
+
+    def Opt(s: String): Option[String] =
+      s match {
+        case null | "" | "null" => None
+        case x => Some(x)
+      }
     
     def act = {
       err.println("Parser "+id+" started, object "+self+",\n"+
@@ -144,62 +145,104 @@ object Status {
               // "\u007f"
               // 127.toChar.toString
               val line = s.replaceAll("\u007f", "")
-        
-              val parsed = try { Json.parse(line) } catch {
-                // case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason)
-                case JsonException(reason) => throw BadStatus("Garbled JSON format: "+reason) 
-              }
-                
-              // version with userAny, anyToMap
-              val twit = anyToMap(parsed)
-              val userAny = twit.get("user") getOrElse { throw BadStatus("no user data inside twit") }
-              // ->: anyToMap
-              val user = anyToMap(userAny)
-        
+              // upon insertion into PG, we get some exceptions like,
+              // ERROR: invalid byte sequence for encoding "UTF8": 0x00 tid=2174544806
+              // but removing \u0000 doesn't fix it; should we try 0x00 directly?
+              // val line = s1.replaceAll("\u0000", "")
+							val jp: JsonParser = factory.createJsonParser(line);
+
               // user
-              val uid: Int = extractInt(user,"id","user")        
-              val name: String = extractString(user,"name","user")
-              val screenName: String = extractString(user,"screen_name","user")
-              val statusesCount: Int = extractInt(user,"statuses_count","user")
-              val friendsCount: Int = extractInt(user,"friends_count","user")
-              val userCreatedAt: String = extractString(user,"created_at","user")
-              val userTime: DateTime = try { dateTimeFmt.parseDateTime(userCreatedAt) }
-                catch { case _: IllegalArgumentException => throw BadStatus("cannot parse user time") }
-              val location: Option[String] = extractNullableString(user,"location","user")
-              val utcOffsetInt: Option[Int] = extractNullableInt(user,"utc_offset","user")
+              var _uid: Option[String] = None
+              var name: Option[String] = None // optional
+              var _screenName: Option[String] = None
+              var _statusesCount: Option[String] = None
+              var _friendsCount: Option[String] = None
+              var _userCreatedAt: Option[String] = None
+              var location: Option[String] = None // optional
+              // should we also capture/decode time_zone?
+              var _utcOffset: Option[String] = None
+              // twit
+              var _tid: Option[String] = None
+              var _twitCreatedAt: Option[String] = None
+              var _twitText: Option[String] = None
+              var _replyTwit: Option[String] = None
+              var _replyUser: Option[String] = None
+
+							jp.nextToken
+							while (jp.nextToken != JsonToken.END_OBJECT) {
+								val fieldName = jp.getCurrentName
+								jp.nextToken
+								fieldName match {
+									case "user" =>
+										while (jp.nextToken != JsonToken.END_OBJECT) {
+											val nameField = jp.getCurrentName
+											jp.nextToken
+										 	nameField match {
+												case "id" =>
+													_uid = Opt(jp.getText)
+												case "name" =>
+													name = Opt(jp.getText)
+												case "screen_name" =>
+													_screenName = Opt(jp.getText)
+												case "statuses_count" =>
+												  _statusesCount = Opt(jp.getText)
+												case "friends_count" =>
+												  _friendsCount = Opt(jp.getText)
+												case "location" =>
+													location = Opt(jp.getText)
+												case "utc_offset" =>
+												  _utcOffset = Opt(jp.getText)
+												case "created_at" =>
+												  _userCreatedAt = Opt(jp.getText)
+												case _ => ()
+											}
+										}
+									case "id" =>
+										_tid = Opt(jp.getText)
+									case "text" =>
+										_twitText = Opt(jp.getText)
+									case "created_at" =>
+										_twitCreatedAt = Opt(jp.getText)
+									case "in_reply_to_status_id" =>
+									  _replyTwit = Opt(jp.getText)
+                    // NB returns "null", 4 characters, for null in JSON!
+                    // can we enforce actual null, perhaps without getText?
+                    // println("reply twit:"+_replyTwit.get+" is null:"+(_replyTwit.get == null)+"length:"+_replyTwit.get.length)
+									case "in_reply_to_user_id" =>
+										_replyUser = Opt(jp.getText)
+									case _ => ()
+                }
+              }
+
+              val uid: Int = getInt(_uid, "user id") 
+              val screenName: String = getString(_screenName, "user screen name")
+              val statusesCount: Int = getInt(_statusesCount, "statuses count")
+              val friendsCount: Int = getInt(_friendsCount, "friends count")
+              val userTime: DateTime = getDateTime(_userCreatedAt, "user time")
+              val utcOffsetInt = getIntOpt(_utcOffset,"utc offset")
               val utcOffset: Option[UTCOffset] = utcOffsetInt match {
                 case Some(x) => Some((x / 3600).toByte)
                 case _ => None
               }
-              // twit
-              val tid: Long = extractLong(twit,"id","twit")
-              val twitCreatedAt: String = extractString(twit,"created_at","twit")
-              val twitTime: DateTime = try { dateTimeFmt.parseDateTime(twitCreatedAt) }
-              catch { case _: IllegalArgumentException => throw BadStatus("cannot parse twit time") }
-              val twitText: String = unescapeHtml(extractString(twit, "text", "twit"))
-              val replyTwit: Option[TwitID] = extractNullableLong(twit,"in_reply_to_status_id","twit")
-              val replyUser: Option[UserID] = extractNullableInt(twit,"in_reply_to_user_id","twit")
-      
+
+              val tid: Long = getLong(_tid,"twit id")
+              val twitText: String = unescapeHtml(getString(_twitText,"twit text"))
+              val twitTime: DateTime = getDateTime(_twitCreatedAt,"twit time")
+              val replyTwit: Option[TwitID] = getLongOpt(_replyTwit,"reply twit id")
+              val replyUser: Option[UserID] = getIntOpt(_replyUser,"reply user id")
         
               // println(name+" "+twitTime+" ["+twitCreatedAt+"] "+"tid="+tid+", uid="+uid+
               //   showOption(", reply_uid=",replyUser)+showOption(", reply_tid=",replyTwit))
         
               val uRes = User(uid, name, screenName, statusesCount, friendsCount, userTime, location, utcOffset)
               val replyTwitOpt: Option[ReplyTwit] =
-                try {
                   replyUser match {
                     case Some(ruid) => Some(ReplyTwit(tid,replyTwit,ruid))
                     case _ =>
-                      if (!replyTwit.isEmpty)  // nonEmpty is in 2.8
+                      if (!replyTwit.isEmpty)  // have nonEmpty in 2.8
                         throw BadStatus("replyTwit nonempty while replyUser empty")
                       else None
                   }
-                } catch { case _: ClassCastException =>
-                  // throw BadStatus
-                  error(":***CAST ERROR***: tid="+tid+", uid="+uid+
-                          ", replyTwit="+replyTwit+", replyUser="+replyUser+" => "+
-                    twitText)
-                }
               val tRes = Twit(tid, uid, twitTime, twitText, replyTwitOpt)
 
               // do we need throttling here?
@@ -263,7 +306,8 @@ object Status {
   class PGInserter(override val id: Int, jdbcArgs: JdbcArgs) extends Inserter(id) {
     val tdb = new TwitterPG(jdbcArgs)
     def act() = {
-      err.println("Inserter "+id+" started, object "+self)
+      err.println("Inserter "+id+" started, object "+self+",\n"+
+              "  talking to parser "+extractor.id + " ["+extractor+"]")
       extractor ! self
       loop {
         react {

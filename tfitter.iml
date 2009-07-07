@@ -25,6 +25,8 @@
     <orderEntry type="library" exported="" name="Maven: org.postgreqsl:jdbc4:8.3-604" level="project" />
     <orderEntry type="library" exported="" name="Maven: la.scala:util_2.7.5:1.0" level="project" />
     <orderEntry type="library" exported="" name="Maven: berkeleydb:je:3.3.82" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.codehaus.jackson:jackson-core-lgpl:1.1.0" level="project" />
+    <orderEntry type="library" exported="" name="Maven: org.codehaus.jackson:jackson-mapper-lgpl:1.1.0" level="project" />
   </component>
 </module>
 

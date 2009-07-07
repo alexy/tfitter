@@ -98,6 +98,16 @@
             <artifactId>util_${scala.version}</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-lgpl</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.1.0</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
@@ -122,6 +132,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-scala-plugin</artifactId>
+                <version>2.11</version>
                 <executions>
                     <execution>
                         <goals>
@@ -153,6 +164,10 @@
                         <launcher>
                             <mainClass>com.tfitter.Main</mainClass>
                             <id>go1</id>
+                        </launcher>
+                        <launcher>
+                            <mainClass>braver.jackson.Main</mainClass>
+                            <id>jack</id>
                         </launcher>
                     </launchers>
                 </configuration>

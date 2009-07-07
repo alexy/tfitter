@@ -16,7 +16,7 @@ import types._
 // passed from JSON extractor to inserter
 case class User (  
   uid: UserID,
-  name: String,
+  name: Option[String],
   screenName: String,
   statusesCount: Int, // declared, embedded in each status
   friendsCount: FriendsCount,
