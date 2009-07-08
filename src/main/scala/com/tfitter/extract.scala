@@ -48,7 +48,9 @@ object Status {
                 }
               } else {
                 try {
-                  val (line,lineNumber) = lines.next
+                  do
+                    (line,lineNumber) = lines.next
+                  while (line.trim.isEmpty)
                   a ! Parse(line)        
                   if (progress && lineNumber % 10000 == 0) err.print('.')
                 } catch {
