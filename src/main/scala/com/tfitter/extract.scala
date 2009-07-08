@@ -48,11 +48,16 @@ object Status {
                 }
               } else {
                 try {
-                  do
-                    (line,lineNumber) = lines.next
-                  while (line.trim.isEmpty)
-                  a ! Parse(line)        
-                  if (progress && lineNumber % 10000 == 0) err.print('.')
+                  var break = false
+                  do {
+                    lines.next match {
+                      case (line,lineNumber) if !line.trim.isEmpty =>
+                        a ! Parse(line)
+                        break = true
+                        if (progress && lineNumber % 10000 == 0) err.print('.')
+                      case _ =>
+                    }
+                  } while (!break)
                 } catch {
                   case _ => err.println("cannot get line")
                   a ! EndOfInput
