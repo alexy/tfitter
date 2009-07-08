@@ -92,6 +92,8 @@ case class AdjustRange (
 )
 
 case class DBError(reason: String) extends Exception(reason)
+case class DBEncoding(override val reason: String) extends DBError(reason)
+case class DBDuplicate(override val reason: String) extends DBError(reason)
 
 trait TwitterDB {
 

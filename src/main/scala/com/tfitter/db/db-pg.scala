@@ -342,8 +342,13 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
         insertTwitSt << tid << t.uid << t.time << t.text <<!
       } catch {
           case e: org.postgresql.util.PSQLException =>
-            err.println("TOO LONG: "+e+" ["+t.text+"]")
-            throw DBError("CANNOT PUT LONG TWIT "+tid)
+            // if (e.getMessge.startsWith ...) can be a guard, too!
+            if (e.getMessage.startsWith("ERROR: invalid byte sequence for encoding \"UTF8\":"))
+              throw DBEncoding("CANNOT PUT TWIT PGSQL BAD UTF8 "+e+" tid "+tid)
+            else if (e.getMessage.startsWith("ERROR: duplicate"))
+              throw DBDuplicate("CANNOT PUT TWIT PGSQL DUPLICATE "+e+" tid "+tid)
+            else
+              throw DBError("CANNOT PUT TWIT PGSQL: "+e+" tid "+tid)
           case e => err.println("TWIT:"+e)
             throw DBError("CANNOT PUT TWIT "+tid)
       }
@@ -443,17 +448,18 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
       val t = TwitPG(tid)
 
+      // this cost 10x slowdown:
       // if (t.exists) {
       //  err.println("ALREADY HAVE TWIT "+tid)
       // } else ...
-      // conn.begin
+
+      // could just return in case of error first thing here?
       try {
         t put twit // will cause exception if present and rollback
       } catch {
-        case e: org.postgresql.util.PSQLException =>
-        if (e.getMessage.startsWith("ERROR: invalid byte sequence for encoding \"UTF8\": 0x00")) {
+        // case DBEncoding(reason) => err.println("ERROR Encoding "+reason)
+        case DBError(_) =>
           return // no need to rollback, nothing's started yet
-        }
       }
       val u = UserPG(uid)
         // may declare that as (u,t)
