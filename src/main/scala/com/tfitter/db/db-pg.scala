@@ -454,13 +454,14 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       // } else ...
 
       // could just return in case of error first thing here?
-      try {
-        t put twit // will cause exception if present and rollback
-      } catch {
-        // case DBEncoding(reason) => err.println("ERROR Encoding "+reason)
-        case DBError(_) =>
-          return // no need to rollback, nothing's started yet
-      }
+      // apparently not: gets stuck without rollback
+      // try {
+      t put twit // will cause exception if present and rollback
+      // } catch {
+      // case DBEncoding(reason) => err.println("ERROR Encoding "+reason)
+      // case DBError(_) =>
+      //  return // no need to rollback, nothing's started yet
+      // }
       val u = UserPG(uid)
         // may declare that as (u,t)
         // as it's already matched:
