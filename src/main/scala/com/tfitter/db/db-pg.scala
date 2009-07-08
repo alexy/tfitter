@@ -451,7 +451,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
         t put twit // will cause exception if present and rollback
       } catch {
         case e: org.postgresql.util.PSQLException =>
-        if (e.getMessage.startsWith("invalid byte sequence for encoding \"UTF8\": 0x00")) {
+        if (e.getMessage.startsWith("ERROR: invalid byte sequence for encoding \"UTF8\": 0x00")) {
           return // no need to rollback, nothing's started yet
         }
       }
