@@ -447,7 +447,14 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       //  err.println("ALREADY HAVE TWIT "+tid)
       // } else ...
       // conn.begin
-      t put twit // will cause exception if present and rollback
+      try {
+        t put twit // will cause exception if present and rollback
+      } catch {
+        case e: org.postgresql.util.PSQLException =>
+        if (e.getMessage.startsWith("invalid byte sequence for encoding \"UTF8\": 0x00")) {
+          return // no need to rollback, nothing's started yet
+        }
+      }
       val u = UserPG(uid)
         // may declare that as (u,t)
         // as it's already matched:

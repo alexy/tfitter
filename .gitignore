@@ -2,3 +2,6 @@
 target*
 .pom.yml
 src/main/filters/filter.properties
+tfitter.iml
+tfitter.ipr
+tfitter.iws
