@@ -181,22 +181,28 @@ class TwitStoreBDB {
 
 case class BdbArgs (
   envPath: String,
-  storeName: String
+  storeName: String,
+  cacheSize: Option[Long]
   )
   
 class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
-  val BdbArgs(envPath,storeName) = bdbArgs
+  val BdbArgs(envPath,storeName,cacheSize) = bdbArgs
   
   /* Open the JE Environment. */
   val envConfig = new EnvironmentConfig()
   envConfig.setAllowCreate(true)
-  envConfig.setTransactional(true)
+  // envConfig.setTransactional(true)
+  cacheSize match {
+    case Some(n) => envConfig.setCacheSize(n)
+    case _ =>
+  }
   val env = new Environment(new File(envPath), envConfig)
 
   /* Open the DPL Store. */
   val storeConfig = new StoreConfig()
   storeConfig.setAllowCreate(true)
-  storeConfig.setTransactional(true)
+  // storeConfig.setTransactional(true)
+  storeConfig.setDeferredWrite(true)
   val store = new EntityStore(env, storeName, storeConfig)
 
   val userPrimaryIndex =
@@ -233,7 +239,9 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   
   def finish: Unit = {
     // txnCommit
+    store.sync
     store.close
+    env.sync
     env.close
   }
 
@@ -299,16 +307,16 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
 
       val t = TwitBDB(tid)
 
-      txnBegin
+      // txnBegin
       t put twit // will cause exception if present and rollback
       val u = UserBDB(uid)
       u.updateUserForTwit(ut)
-      txnCommit
+      // txnCommit
     } catch {
       case e => {
         err.println(e)
         err.println("ROLLBACK uid="+uid+" tid="+tid)
-        txnRollback
+        // txnRollback
       }
     }
   }

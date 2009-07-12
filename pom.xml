@@ -11,7 +11,7 @@
     <properties>
         <java.src.version>1.6</java.src.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>com.tfitter.Status</main.class>
+        <main.class>com.tfitter.DbMain</main.class>
     </properties>
     <profiles>
         <profile>
@@ -158,7 +158,7 @@
                     </excludes>
                     <launchers>
                         <launcher>
-                            <mainClass>com.tfitter.Status</mainClass>
+                            <mainClass>com.tfitter.DbMain</mainClass>
                             <id>st1</id>
                         </launcher>
                         <launcher>

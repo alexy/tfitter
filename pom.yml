@@ -7,7 +7,7 @@ url: "http://tfitter.com/"
 properties:
   java.src.version: 1.6
   project.build.sourceEncoding: UTF-8
-  main.class: com.tfitter.Status
+  main.class: com.tfitter.DbMain
 profiles:
   - activation:
       activeByDefault: true
@@ -58,7 +58,7 @@ build:
         jvmArgs: [ -Xmx128m, -Xss2m, -Dfile.encoding=UTF-8 ]
         excludes: [ "**/drafts/*.*" ]
         launchers:
-          - { mainClass: com.tfitter.Status, id: st1 }
+          - { mainClass: com.tfitter.DbMain, id: st1 }
           - { mainClass: com.tfitter.Main, id: go1 }
           - { mainClass: braver.jackson.Main, id: jack }
     - artifactId: maven-compiler-plugin

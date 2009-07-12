@@ -32,9 +32,10 @@ object Main {
   
 
   def showBdb {
+    val cacheSize = None
     val bdbArgs = {
       import Config.{bdbEnvPath,bdbStoreName}
-      BdbArgs(bdbEnvPath,bdbStoreName)
+      BdbArgs(bdbEnvPath,bdbStoreName,cacheSize)
     }
 
     val tdb = new TwitterBDB(bdbArgs)
