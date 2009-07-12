@@ -18,8 +18,10 @@ class UserStatsBDB {
   var uid: java.lang.Integer = null
   var firstTwit: java.lang.Long = null
   var lastTwit: java.lang.Long = null
-  var firstTwitTime: DateTime = null
-  var lastTwitTime: DateTime = null
+  // Exception in thread "main" java.lang.IllegalArgumentException:
+  // Class could not be loaded or is not persistent: org.joda.time.DateTime
+  var firstTwitTime: java.util.Date = null
+  var lastTwitTime: java.util.Date = null
   var totalTwits: java.lang.Integer = null 
   var totalTwitsDeclared: java.lang.Integer = null
   var numFriends: java.lang.Integer = null
@@ -42,8 +44,8 @@ class UserStatsBDB {
     uid = _uid
     firstTwit= _firstTwit
     lastTwit = _lastTwit
-    firstTwitTime = _firstTwitTime
-    lastTwitTime = _lastTwitTime
+    firstTwitTime = _firstTwitTime.toDate
+    lastTwitTime = _lastTwitTime.toDate
     totalTwits = _totalTwits
     totalTwitsDeclared = _totalTwitsDeclared
     numFriends = _numFriends
@@ -57,9 +59,15 @@ class UserStatsBDB {
       u.numReplyTwits,u.numReplyUsers,u.flags)       
   def toUserStats: UserStats = UserStats(
     uid.intValue,firstTwit.longValue,lastTwit.longValue,
-    firstTwitTime,lastTwitTime,
+    new DateTime(firstTwitTime),new DateTime(lastTwitTime),
     totalTwits.intValue,totalTwitsDeclared.intValue,numFriends.intValue,
-    numReplyTwits.intValue,numReplyUsers.intValue,flags.intValue)   
+    numReplyTwits.intValue,numReplyUsers.intValue,flags.intValue)
+
+  override def toString: String = 
+    "User uid:%d A-tid:%d Z-tid:%d A@:%Tc Z@:%Tc #t:%d t?:%d f:%d rt:%d ru:%d" format (
+      uid,firstTwit,lastTwit,firstTwitTime,lastTwitTime,
+      totalTwits,totalTwitsDeclared,numFriends,
+      numReplyTwits,numReplyUsers,flags)
 }
 
 
@@ -92,6 +100,13 @@ class ReplyTwitBDB {
     }
     ReplyTwit(tid.longValue,replyTwitLongOpt,replyUser.intValue)
   }
+
+  override def toString:String = {
+    var s = "Reply tid:%d ru:%d" format (tid,replyUser)
+    if (replyTwit != null) s += " rt:"+replyTwit
+    s
+  }
+
 }
   
 @Entity
@@ -100,7 +115,7 @@ class TwitStoreBDB {
   var tid: java.lang.Long = null
   @SecondaryKey{val relate=MANY_TO_ONE}
   var uid: java.lang.Integer = null
-  var time: DateTime = null
+  var time: java.util.Date = null // DateTime not persistent
   var text: String = null
   @SecondaryKey{val relate=MANY_TO_ONE}
   var replyTwit: java.lang.Long = null
@@ -117,7 +132,7 @@ class TwitStoreBDB {
     ) = { this()
       tid = _tid
       uid = _uid
-      time = _time
+      time = _time.toDate
       text = _text
       replyUser = _replyUser match {
         case Some(user) => 
@@ -153,7 +168,14 @@ class TwitStoreBDB {
         Some(ReplyTwit(
           tid.longValue,Some(twit.longValue),user.intValue))
     }
-    Twit(tid.longValue,uid.intValue,time,text,reply)
+    Twit(tid.longValue,uid.intValue,new DateTime(time),text,reply)
+  }
+
+  override def toString:String = {
+    var s = "Twit tid:%d uid:%d @:%Tc [%s]" format (tid,uid,time,text)
+    if (replyUser != null) s += " ru:"+replyUser
+    if (replyTwit != null) s += " rt:"+replyTwit
+    s
   }
 }
 
@@ -184,13 +206,13 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
       store.getPrimaryIndex(classOf[java.lang.Long], classOf[TwitStoreBDB])
 
   val twitSecIndexUser =
-      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "twitUser")
+      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "uid")
 
   val twitSecIndexReplyTwit =
-      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Long], "twitReplyTwit")
+      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Long], "replyTwit")
 
   val twitSecIndexReplyUser =
-      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "twitReplyUser")
+      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "replyUser")
 
   val replyPrimaryIndex =
       store.getPrimaryIndex(classOf[java.lang.Long], classOf[ReplyTwitBDB])
@@ -210,7 +232,7 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   def txnRollback: Unit = txn.abort
   
   def finish: Unit = {
-    txnCommit
+    // txnCommit
     store.close
     env.close
   }
@@ -292,7 +314,28 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   }
 
 
-    
+  /* Iterate entities in primary and secondary key order. */
+  def printAll[T](cursor: EntityCursor[T]) {
+      val x = cursor.next()
+      if (x == null) {
+          cursor.close()
+      } else {
+          println(x)
+          printAll(cursor) // tail recursion
+      }
+  }
+
+  def showData = {
+    println("--- Iterate Users by primary key ---")
+    printAll(userPrimaryIndex.entities())
+    println("--- Iterate Twits by primary key ---")
+    printAll(twitPrimaryIndex.entities())
+    println("--- Iterate Replies by primary key ---")
+    printAll(replyPrimaryIndex.entities())
+    // println("--- Iterate by secondary key ---")
+    // printAll(secIndex.entities())
+  }
+  
   val subParams = SubParams(TwitBDB,UserBDB,txnBegin _,txnCommit _,txnRollback _)
   def insertUserTwitB = insertUserTwitCurry(subParams)(_)
 }

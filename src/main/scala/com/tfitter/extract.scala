@@ -6,7 +6,9 @@ import org.codehaus.jackson._
 import org.apache.commons.lang.StringEscapeUtils.unescapeHtml
 
 import com.tfitter.db.types._
-import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,JdbcArgs,TwitterPG,DBError}
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit,DBError}
+import com.tfitter.db.{JdbcArgs,TwitterPG} // for PostgreSQL backend
+import com.tfitter.db.{BdbArgs,TwitterBDB} // for Berkeley DB backend
 
 import scala.io.Source
 import scala.actors.Actor
@@ -349,6 +351,34 @@ object Status {
     }
   }
 
+  class BdbInserter(override val id: Int, bdbArgs: BdbArgs) extends Inserter(id) {
+    val tdb = new TwitterBDB(bdbArgs)
+    def act() = {
+      err.println("Inserter "+id+" started, object "+self+",\n"+
+              "  talking to parser "+extractor.id + " ["+extractor+"]")
+      extractor ! self
+      loop {
+        react {
+          case ut @ UserTwit(_,_) => {
+            try {
+              tdb.insertUserTwit(ut)
+            } catch {
+              case e => err.println("ERROR: "+e)
+            }
+
+            extractor ! self
+          }
+          case EndOfInput => {
+            err.println("Inserter "+id+" exiting.")
+            tdb.finish
+            exit()
+          }
+          case msg => err.println("Inserter "+id+" unhandled message:"+msg)
+        }
+      }
+    }
+  }
+
   // simple testing version where inserters just print their inputs
   def printer: Array[String] => Unit = { args => 
 
@@ -378,7 +408,7 @@ object Status {
   }
 
   
-  def inserter(args: Array[String]) {
+  def inserterPG(args: Array[String]) {
     import la.scala.sql.rich.RichSQL._
 
     val numThreads = Config.numCores
@@ -415,8 +445,45 @@ object Status {
     parsers foreach (_.start)
   }
 
+
+  def inserterBDB(args: Array[String]) {
+
+    val numThreads = Config.numCores
+
+    val bdbArgs = {
+      import Config.{bdbEnvPath,bdbStoreName}
+      BdbArgs(bdbEnvPath,bdbStoreName)
+    }
+
+
+    // make this a parameter:
+    val showingProgress = true
+
+    Console.setOut(new PrintStream(Console.out, true, "UTF8"))
+    err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor in IDEA")
+    // Console.println("this is console")
+
+    // don't even need ti import java.sql.DriverManager for this,
+    // magic -- NB see excatly what it does:
+
+    val readLines = new ReadLines(args(0),numThreads,showingProgress)
+
+    // before I added type annotation List[Inserter] below,
+    // I didn't realize I'm not using a List but get a Range...  added .toList below
+    val inserters: List[BdbInserter] = (0 until numThreads).toList map (new BdbInserter(_,bdbArgs))
+
+    val parsers: List[JSONExtractor] = inserters map (ins => new JSONExtractor(ins.id,readLines,ins))
+
+    (parsers zip inserters) foreach { case (parser, inserter) =>
+      inserter.setExtractor(parser) }
+
+    readLines.start
+    inserters foreach (_.start)
+    parsers foreach (_.start)
+  }
+
   def main(args: Array[String]) =
-    inserter(args)
+    inserterBDB(args)
     // printer(args)
 }
 

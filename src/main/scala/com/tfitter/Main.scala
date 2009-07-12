@@ -30,20 +30,22 @@ object Main {
     tdb.testTwit
   }
   
-  /*
-  def testBdb = {
-    import la.scala.util.bdb.Env
-    
-    val env = new Env(new File(".")) with Transactional with AllowCreate
-    env { e =>
-        println(e)
+
+  def showBdb {
+    val bdbArgs = {
+      import Config.{bdbEnvPath,bdbStoreName}
+      BdbArgs(bdbEnvPath,bdbStoreName)
     }
+
+    val tdb = new TwitterBDB(bdbArgs)
+
+    tdb.showData
   }
-  */
 
   def main(args: Array[String])  {
     println("numCores => "+Config.numCores)
 
-    doPGtest
+    // doPGtest
+    showBdb
   }
 }
