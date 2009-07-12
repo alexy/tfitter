@@ -79,10 +79,10 @@ object DbMain {
 
     val numThreads = 1 // Config.numCores
     // without L suffix. cache size was int and maxed out at 2g!
-    // val cacheSize: Option[Long] = Some(3*1024*1024*1024L)
+    // val bdbCacheSize: Option[Long] = Some(3*1024*1024*1024L)
     val bdbArgs = {
-      import Config.{bdbEnvPath,bdbStoreName,cacheSize}
-      BdbArgs(bdbEnvPath,bdbStoreName,cacheSize)
+      import Config.{bdbEnvPath,bdbStoreName,bdbCacheSize}
+      BdbArgs(bdbEnvPath,bdbStoreName,bdbCacheSize)
     }
 
 
