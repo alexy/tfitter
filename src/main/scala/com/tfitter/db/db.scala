@@ -10,6 +10,7 @@ object types {
   type FriendsCount = Int
   type UserFlags = Int
   type UTCOffset = Byte
+  type TwitIDOpt = Option[TwitID]
 }
 import types._
 
@@ -65,6 +66,7 @@ object Twit {
       Some(r))
 }
 
+
 case class UserTwit (
   user: User,
   twit: Twit
@@ -108,47 +110,103 @@ trait TwitterDB {
   
   abstract class UserDB(uid: UserID) {
 
-    def exists: Boolean
+    protected var stats: Option[UserStats] = None
 
-    var stats: Option[UserStats] = None // var
-    def getStats: Option[UserStats]
-    def get // sets stats in the database
-    // call filling stats from DB:
-    get // stats = getStats
+    def exists: Boolean // as fetched
+
+    def fetchStats: Option[UserStats] // without setting
+    def fetch: Unit = stats = fetchStats
+    def getStats: Option[UserStats] = stats
+    def getFetchStats: Option[UserStats] = { 
+      fetch
+      getStats
+    }
     
-    // write all fields back
-    def setStats(us: UserStats)
-    def set // from stats in the database
+    // Constructor code: 
+    // call filling stats from DB:
+    fetch
+    
+    def storeStats(us: UserStats): Unit // without setting
+    def store: Unit = stats match {
+      case Some(x) => storeStats(x)
+      case _ => 
+    }
+    def setStats(us: UserStats): Unit = stats = Some(us)
+    def setStoreStats(us: UserStats): Unit = {
+      setStats(us)
+      storeStats(us)
+    }
 
-    // adjust range
-    def setRangeFirst
-    def setRangeLast
+    // store adjusted range in the database
+    def storeRangeFirst: Unit
+    def storeRangeLast:  Unit
   
-    def getFirst:      Option[TwitID]
-    def getLast:       Option[TwitID]
-    def getTotalTwits: Option[TwitCount]
+    def getFirst: Option[TwitID] = stats match {
+      case Some(x) => Some(x.firstTwit)
+      case _ => None
+    }
+
+    def getLast:  Option[TwitID] = stats match {
+      case Some(x) => Some(x.lastTwit)
+      case _ => None
+    }
+
+    def getTotalTwits: Option[TwitCount] = stats match {
+      case Some(x) => Some(x.totalTwits)
+      case _ => None
+    }
     // could do more getters if needed
 
     // flags for the range status
     // we structure them so that `good` cases are all 0
     val Seq(retry, needsPast, pastUnreachable) = (0 to 2).map(1 << _)
-    def setFlags(i: UserFlags): Unit
-    def getFlags: Option[UserFlags]
+    
+    // def setFlags(i: UserFlags): Unit
+    // def getFlags: Option[UserFlags]
 
     // absorb a new UserTwit record
-    def updateUserForTwit(ut: UserTwit)
+    def updateUserForTwit(ut: UserTwit) = {
+      val UserTwit(u,t) = ut
+      val tid = t.tid
 
+      val (numReplyTwitsAdd, numReplyUsersAdd) =
+        t.reply match {
+          case Some(x) => x.replyTwit match {
+            case Some(_) => (1,0)
+            case _ => (0,1)
+          }
+          case _ => (0,0)
+        }
 
-  /*
-    def retry_=(b: Boolean): Unit
-    def retry: Boolean
-    
-    def needsPast_=(b: Boolean): Unit
-    def needsPast: Boolean
-    
-    def pastUnreachable_=(b: Boolean): Unit
-    def pastUnreachable: Boolean
-  */
+      stats match { 
+        case Some(x) => { import x._
+          totalTwits += 1
+          totalTwitsDeclared = u.statusesCount
+          numFriends = u.friendsCount
+          numReplyTwits += numReplyTwitsAdd
+          numReplyUsers += numReplyUsersAdd
+          if (tid < firstTwit) {
+            // err.println("user "+x.uid+" going backward at twit "+tid)
+            firstTwit = tid
+            firstTwitTime = t.time
+            storeRangeFirst
+          } else if (tid > lastTwit) {
+            lastTwit = tid
+            lastTwitTime = t.time
+            storeRangeLast
+          }
+        }
+        case _ => { 
+          setStoreStats(
+            UserStats(
+              uid, tid, tid, t.time, t.time, 1,
+              u.statusesCount, u.friendsCount,
+              numReplyTwitsAdd, numReplyUsersAdd, 0
+            )
+          )
+        }
+      }
+    }
   }
 
   // case class Duplicate(tid: TwitID) extends DBError
@@ -158,19 +216,48 @@ trait TwitterDB {
     def isReply: Boolean
 
     def put(t: Twit): Unit // can raise Duplicate
-    def getCore: Option[Twit] // can raise NotFound
-    def getFull: Option[Twit] // can raise NotFound
+    def getCore: Option[Twit]
+    def getFull: Option[Twit]
+    def getReply: Option[ReplyTwit]
   }
-  
+
+  case class SubParams (
+    makeTwit:  TwitID => TwitDB, 
+    makeUser:  UserID => UserDB,
+    txnBegin:     () => Unit,
+    txnCommit:    () => Unit,
+    txnRollback:  () => Unit
+    )
+    
+    
+  // curry make/txn params
+  def insertUserTwitCurry(subParams: SubParams)(ut: UserTwit): Unit = {
+    import System.err
+    
+    val SubParams(makeTwit,makeUser,txnBegin,txnCommit,txnRollback) = subParams
+    
+    val UserTwit(user,twit) = ut
+    val uid = user.uid
+    val tid = twit.tid
+    try {
+
+      val t = makeTwit(tid) // TwitPG(tid)
+
+      txnBegin
+      t put twit // will cause exception if present and rollback
+      val u = makeUser(uid) // UserPG(uid)
+      u.updateUserForTwit(ut)
+      txnCommit
+    } catch {
+      case e => {
+        err.println(e)
+        err.println("ROLLBACK uid="+uid+" tid="+tid)
+        txnRollback
+      }
+    }
+  }  
+
+  // let's make a hard-code one too to compare
   def insertUserTwit(ut: UserTwit)
 
 }
-
-//trait Nonames {
-//  def f(Int) :Unit
-//}
-
-// user profile:
-// last time if tweet
-// total number of replies to twits
-// -''- to users without twits

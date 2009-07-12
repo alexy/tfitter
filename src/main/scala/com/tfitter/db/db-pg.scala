@@ -12,14 +12,12 @@ case class JdbcArgs(
         replyTable: String)
   
 class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
+  
   val JdbcArgs(jdbcUrl,jdbcUser,jdbcPwd,rangeTable,twitTable,replyTable) = jdbcArgs
   import types._
 
   import java.sql.{DriverManager, Connection, ResultSet, PreparedStatement, Statement, Date}
   import DriverManager.{getConnection => connect}
-
-  // report this to IDEA folks -- I do import ->: so this is not unused:
-  import org.suffix.util.FunctionNotation._
 
   val rtUser       = "uid"
   val rtFirst      = "first_twit"
@@ -105,42 +103,22 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   // even back in RichSQL?  Ask @n8han! :)
 
   case class UserPG(uid: UserID) extends UserDB(uid: UserID) {
-    def exists: Boolean = {
-      // NB UserID hardcoded as nextInt, update to nextLong if desired
-      val count: Long = selectCountUserSt << uid <<! { _.nextInt } match {
-        case Stream(x) => x
-        case _ => 0
-      }
-      count match {
-        case 0 => false
-        case _ => true
-      }
-    }
+    
+    def exists: Boolean = !stats.isEmpty
 
-
-    def setStats(us: UserStats): Unit =
+    def storeStats(us: UserStats): Unit = 
       insertRangeFullSt << uid << us.firstTwit << us.lastTwit <<
       us.firstTwitTime << us.lastTwitTime << us.totalTwits <<
       us.totalTwitsDeclared << us.numFriends <<
       us.numReplyTwits << us.numReplyUsers << us.flags <<!
-
-    def set: Unit = stats match {
-      case Some(x) => setStats(x)
-      case _ => ()
+   
+    def fetchStats: Option[UserStats] = {
+      selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) } firstOption // deprecated in 2.7, firstOption deprecated in 2.8 => headOption again!
     }
 
-    def getStats: Option[UserStats] = {
-      (selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) }) ->:
-      deStream[UserStats]
-    }
-
-    def get: Unit = {
-      val all: Option[UserStats] = getStats
-      stats = all
-    }
 
     // adjust range
-    def setRangeFirst: Unit = stats match {
+    def storeRangeFirst: Unit = stats match {
       case Some(x) => { import x._
         updateRangeFirstSt << firstTwit << firstTwitTime <<
                 totalTwits << totalTwitsDeclared << numFriends <<
@@ -148,7 +126,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       case _ => ()
     }
 
-    def setRangeLast: Unit = stats match {
+    def storeRangeLast: Unit = stats match {
       case Some(x) => { import x._
         updateRangeFirstSt << lastTwit << lastTwitTime <<
                 totalTwits << totalTwitsDeclared << numFriends <<
@@ -156,70 +134,14 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       case _ => ()
     }
 
-    def getFirst: Option[TwitID] = stats match {
-      case Some(x) => Some(x.firstTwit)
-      case _ => None
-    }
-
-    def getLast:  Option[TwitID] = stats match {
-      case Some(x) => Some(x.lastTwit)
-      case _ => None
-    }
-
-    def getTotalTwits: Option[TwitCount] = stats match {
-      case Some(x) => Some(x.totalTwits)
-      case _ => None
-    }
-
-    def setFlags(i: UserFlags): Unit =
+    /*
+    def storeFlags(i: UserFlags): Unit =
       updateRangeFlagsSt << i << uid <<!
 
-    def getFlags: Option[UserFlags] =
+    def fetchFlags: Option[UserFlags] =
       (selectRangeFlagsSt << uid <<! { _.nextInt}) ->:
       deStream[UserFlags]
-
-    
-    def updateUserForTwit(ut: UserTwit) = {
-      val UserTwit(u,t) = ut
-      val tid = t.tid
-
-      val (numReplyTwitsAdd, numReplyUsersAdd) =
-        t.reply match {
-          case Some(x) => x.replyTwit match {
-            case Some(_) => (1,0)
-            case _ => (0,1)
-          }
-          case _ => (0,0)
-        }
-
-      stats match { 
-        case Some(x) => { import x._
-          totalTwits += 1
-          totalTwitsDeclared = u.statusesCount
-          numFriends = u.friendsCount
-          numReplyTwits += numReplyTwitsAdd
-          numReplyUsers += numReplyUsersAdd
-          if (tid < firstTwit) {
-            // err.println("user "+x.uid+" going backward at twit "+tid)
-            firstTwit = tid
-            firstTwitTime = t.time
-            setRangeFirst
-          } else if (tid > lastTwit) {
-            lastTwit = tid
-            lastTwitTime = t.time
-            setRangeLast
-          }
-        }
-        case _ => { stats =
-            Some(UserStats(
-              uid, tid, tid, t.time, t.time, 1,
-              u.statusesCount, u.friendsCount,
-              numReplyTwitsAdd, numReplyUsersAdd, 0
-            ))
-            set
-        }
-      }
-    }
+    */
   }
 
   // can replace hard-coded table with format
@@ -273,6 +195,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   val ttUser = "uid"
   val ttTime = "time"
   val ttText = "text"
+  // may add ttReplyUser and ttReplyTwit right here as well
 
   val rrTwit      = "tid"
   val rrReplyTwit = "trep"
@@ -309,32 +232,14 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     )
 
   case class TwitPG(tid: TwitID) extends TwitDB(tid: TwitID) {
-    def exists: Boolean = {
-      // getting ResultSet closed error once in a while...
-      try {
-        val count: Long = selectCountTwitSt << tid <<! { _.nextLong } match {
-          case Stream(x) => x
-          case _ => 0
-        }
-        count match {
-          case 0 => false
-          case _ => true
-        }
-      } catch {
+    
+    def exists: Boolean = !getCore.isEmpty
+
+    def isReply: Boolean =
+      getFull match {
+        case Some(t) => !t.reply.isEmpty
         case _ => false
       }
-    }
-
-    def isReply: Boolean = {
-      val count = selectCountReplySt << tid <<! { _.nextLong } match {
-        case Stream(x) => x
-        case _ => 0
-      }
-      count match {
-        case 0 => false
-        case _ => true
-      }
-    }
 
     def put(t: Twit): Unit = {
       // NB: if reply, DO TRANSACTION
@@ -365,24 +270,24 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     }
 
     def getCore: Option[Twit] = {
-      (selectTwitSt << tid <<! { rs => Twit(tid,rs,rs,rs,None) }) ->:
-      deStream[Twit]
+      selectTwitSt << tid <<! { rs => Twit(tid,rs,rs,rs,None) } firstOption
     }
 
+    def getReply: Option[ReplyTwit] = 
+      selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } firstOption
+      
     def getFull: Option[Twit] = {
       val ot = getCore
       ot match {
-        case Some(t) => 
-          if (isReply) {
-            selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } match {
-              case Stream(r) => { Some(Twit(t,r)) }
+        case Some(t) =>
+          getReply match {
+              case Some(r) => { Some(Twit(t,r)) }
               case _ => ot
-            }
           }
-          else ot
         case _ => None
       }
     }
+
   }
 
   // make the create statement a format for column names
@@ -438,9 +343,10 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
     conn.commit // create tables for future use!
   }
-
-
-  def insertUserTwit(ut: UserTwit): Unit = {
+    
+    
+  // curry make/txn params
+  def insertUserTwit(ut: UserTwit): Unit = {    
     val UserTwit(user,twit) = ut
     val uid = user.uid
     val tid = twit.tid
@@ -448,23 +354,9 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
       val t = TwitPG(tid)
 
-      // this cost 10x slowdown:
-      // if (t.exists) {
-      //  err.println("ALREADY HAVE TWIT "+tid)
-      // } else ...
-
-      // could just return in case of error first thing here?
-      // apparently not: gets stuck without rollback
-      // try {
+      // no conn.begin in SQL
       t put twit // will cause exception if present and rollback
-      // } catch {
-      // case DBEncoding(reason) => err.println("ERROR Encoding "+reason)
-      // case DBError(_) =>
-      //  return // no need to rollback, nothing's started yet
-      // }
       val u = UserPG(uid)
-        // may declare that as (u,t)
-        // as it's already matched:
       u.updateUserForTwit(ut)
       conn.commit
     } catch {
@@ -475,4 +367,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       }
     }
   }
+  
+  val subParams = SubParams(TwitPG,UserPG,()=>(),conn.commit _,conn.rollback _)
+  def insertUserTwitB = insertUserTwitCurry(subParams)(_)
 }
