@@ -5,7 +5,7 @@ import com.sleepycat.je.{Environment, EnvironmentConfig,Transaction}
 import com.sleepycat.persist.{EntityCursor,EntityStore,StoreConfig}
 import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
-import la.scala.util.bdb.{Env,Store}
+// import la.scala.util.bdb.{Env,Store}
 import org.joda.time.DateTime
 
 import types._
