@@ -368,8 +368,9 @@ object Status {
             extractor ! self
           }
           case EndOfInput => {
-            err.println("Inserter "+id+" exiting.")
+            err.println("Inserter "+id+" flushing to disk...")
             tdb.finish
+            err.println("Inserter "+id+" exiting.")
             exit()
           }
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
