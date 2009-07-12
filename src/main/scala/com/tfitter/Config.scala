@@ -13,4 +13,5 @@ object Config {
   val replyTable   = Properties.getString("reply.table","reply")
   val bdbEnvPath   = Properties.getString("bdb.env.path","./tmp")
   val bdbStoreName = Properties.getString("bdb.store.name","twitter")
+  val bdbCacheSize = Properties.getLong("bdb.cache.size",2147483648)
 }
