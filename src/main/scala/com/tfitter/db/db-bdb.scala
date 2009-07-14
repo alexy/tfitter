@@ -179,6 +179,7 @@ class TwitStoreBDB {
   }
 }
 
+
 case class BdbArgs (
   envPath: String,
   storeName: String,
@@ -322,18 +323,41 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   }
 
 
-  /* Iterate entities in primary and secondary key order. */
-  def printAll[T](cursor: EntityCursor[T]) {
+  // Stream.continually is in 2.8
+  def continually[A](elem: => A): Stream[A] = Stream.cons(elem, continually(elem))
+  def cursorStream[T](cursor: EntityCursor[T]): Stream[T] =
+    continually(cursor.next _) map (_.apply())
+
+  def cursorIter[T](cursor: EntityCursor[T])(f: T => Unit): Unit = {
       val x = cursor.next()
       if (x == null) {
           cursor.close()
       } else {
-          println(x)
-          printAll(cursor) // tail recursion
+          f(x)
+          cursorIter(cursor)(f) // tail recursion
       }
   }
+  
+    
+  def cursorMap[T,R](cursor: EntityCursor[T])(f: T => R): List[R] = {  
+    def cursorMapAux[T,R](cursor: EntityCursor[T])(f: T => R)(res: List[R]): List[R] = {
+      val x = cursor.next()
+      if (x == null) {
+          cursor.close()
+          res // or res.reverse if you care about the order
+      } else {
+          cursorMapAux(cursor)(f)(f(x)::res) // tail recursion
+      }    
+    }
+
+    cursorMapAux(cursor)(f)(Nil)
+  }
+  
+  
+  def printAll[T](c: EntityCursor[T]): Unit = cursorIter(c)(println(_))
 
   def showData = {
+  /* Iterate entities in primary and secondary key order. */
     println("--- Iterate Users by primary key ---")
     printAll(userPrimaryIndex.entities())
     println("--- Iterate Twits by primary key ---")
@@ -346,4 +370,8 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   
   val subParams = SubParams(TwitBDB,UserBDB,txnBegin _,txnCommit _,txnRollback _)
   def insertUserTwitB = insertUserTwitCurry(subParams)(_)
+
+  // def allUserStats: List[UserStats] = cursorMap(userPrimaryIndex.entities())(_.toUserStats)
+  def allUserStats: Stream[UserStats] = cursorStream(userPrimaryIndex.entities()) map (_.toUserStats)
+
 }

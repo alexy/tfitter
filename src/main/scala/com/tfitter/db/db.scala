@@ -259,5 +259,6 @@ trait TwitterDB {
 
   // let's make a hard-code one too to compare
   def insertUserTwit(ut: UserTwit)
-
+  
+  def allUserStats: Stream[UserStats]
 }

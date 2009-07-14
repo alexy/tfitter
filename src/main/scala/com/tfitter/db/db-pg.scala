@@ -51,6 +51,9 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
 
   def selectFmt(n: Int): String =
     "select "+commaSeparated("%s",n)+" from %s where %s = ?"
+    
+  def selectAllFmt(n: Int): String =
+    "select "+commaSeparated("%s",n)+" from %s"
 
   def selectCountFmt : String =
     "select count(*) from %s where %s = ?"
@@ -67,6 +70,13 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     format (rtFirst,rtLast,rtFirstTime,rtLastTime,rtTotal,
             rtDeclared,rtFriends,rtReplyTwits,rtReplyUsers,
             rtFlags,rangeTable,rtUser)
+    )
+    
+  val selectRangeAllSt = conn prepareStatement (
+    selectAllFmt(11)
+    format (rtUser,rtFirst,rtLast,rtFirstTime,rtLastTime,rtTotal,
+            rtDeclared,rtFriends,rtReplyTwits,rtReplyUsers,
+            rtFlags,rangeTable)
     )
 
   val updateRangeFirstSt = conn prepareStatement (
@@ -113,7 +123,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       us.numReplyTwits << us.numReplyUsers << us.flags <<!
    
     def fetchStats: Option[UserStats] = {
-      selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) } firstOption // deprecated in 2.7, firstOption deprecated in 2.8 => headOption again!
+      selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) } firstOption 
     }
 
 
@@ -370,4 +380,8 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   
   val subParams = SubParams(TwitPG,UserPG,()=>(),conn.commit _,conn.rollback _)
   def insertUserTwitB = insertUserTwitCurry(subParams)(_)
+  
+  def allUserStats: Stream[UserStats] =
+    for (us <- selectRangeAllSt <<! { r => UserStats(r,r,r,r,r,r,r,r,r,r,r) })
+      yield us
 }
