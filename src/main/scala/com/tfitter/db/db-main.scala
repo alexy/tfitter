@@ -75,14 +75,23 @@ object DbMain {
 
 
   def inserterBDB(args: Array[String]) {
-    import com.tfitter.db.BdbArgs
+    import db.{BdbArgs,BdbFlags}
 
     val numThreads = 1 // Config.numCores
     // without L suffix. cache size was int and maxed out at 2g!
     // val bdbCacheSize: Option[Long] = Some(3*1024*1024*1024L)
+
+    // NB replace by a single bitmasl with named flags
+    // single-threaded non-transactional writing with deferred write
+    val bdbFlags = BdbFlags(
+      true,  // allowCreate
+      false, // readOnly
+      false, // transactional
+      true   // deferred write
+    )
     val bdbArgs = {
       import Config.{bdbEnvPath,bdbStoreName,bdbCacheSize}
-      BdbArgs(bdbEnvPath,bdbStoreName,bdbCacheSize)
+      BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
     }
 
 

@@ -32,10 +32,18 @@ object Main {
   
 
   def showBdb {
+    // non-transactional read-only
+    val bdbFlags = BdbFlags(
+      false, // allowCreate
+      true,  // readOnly
+      false, // transactional
+      false  // deferred write
+    )
+
     val cacheSize = None
     val bdbArgs = {
       import Config.{bdbEnvPath,bdbStoreName}
-      BdbArgs(bdbEnvPath,bdbStoreName,cacheSize)
+      BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,cacheSize)
     }
 
     val tdb = new TwitterBDB(bdbArgs)

@@ -1,5 +1,6 @@
 package com.tfitter.db
 
+import System.err
 import java.io.File
 import com.sleepycat.je.{Environment, EnvironmentConfig,Transaction}
 import com.sleepycat.persist.{EntityCursor,EntityStore,StoreConfig}
@@ -180,30 +181,57 @@ class TwitStoreBDB {
 }
 
 
+case class BdbFlags (
+  allowCreate: Boolean,
+  readOnly: Boolean,
+  transactional: Boolean,
+  deferredWrite: Boolean
+  )
+
 case class BdbArgs (
   envPath: String,
   storeName: String,
+  flags: BdbFlags,
   cacheSize: Option[Long]
   )
   
 class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
-  val BdbArgs(envPath,storeName,cacheSize) = bdbArgs
+  val BdbArgs(envPath,storeName,bdbFlags,cacheSize) = bdbArgs
+  val BdbFlags(bdbAllowCreate,bdbReadOnly,bdbTransactional,bdbDeferredWrite) = bdbFlags
   
   /* Open the JE Environment. */
-  val envConfig = new EnvironmentConfig()
-  envConfig.setAllowCreate(true)
-  // envConfig.setTransactional(true)
+  val envConfig = new EnvironmentConfig
+
+  if (bdbReadOnly) { envConfig.setReadOnly(true)
+    err.println("BDB Env ReadOnly") }
+  else if (bdbAllowCreate) { envConfig.setAllowCreate(true)
+    err.println("BDB Env AllowCreate") }
+
+  if (bdbTransactional) { envConfig.setTransactional(true)
+    err.println("BDB Env Transactional") }
+  // env has no setDeferredWrite
+  
   cacheSize match {
-    case Some(n) => envConfig.setCacheSize(n)
-    case _ =>
+    case Some(n) => { envConfig.setCacheSize(n)
+      err.println("BDB setting cache size "+n) }
+    case _ => err.println("BDB setting NO cache size, using default 60% of Xmx")
   }
   val env = new Environment(new File(envPath), envConfig)
 
   /* Open the DPL Store. */
-  val storeConfig = new StoreConfig()
-  storeConfig.setAllowCreate(true)
-  // storeConfig.setTransactional(true)
-  storeConfig.setDeferredWrite(true)
+  val storeConfig = new StoreConfig
+
+  if (bdbReadOnly) { storeConfig.setReadOnly(true)
+    err.println("BDB Store ReadOnly") }
+  else if (bdbAllowCreate) { storeConfig.setAllowCreate(true)
+    err.println("BDB Store AllowCreate") }
+
+
+  if (bdbTransactional) { storeConfig.setTransactional(true)
+    err.println("BDB Store Transactional") }
+  else if (bdbDeferredWrite) { storeConfig.setDeferredWrite(true)
+    err.println("BDB Store DeferredWrite") }
+
   val store = new EntityStore(env, storeName, storeConfig)
 
   val userPrimaryIndex =
@@ -231,12 +259,25 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
       store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "replyUser")
 
   var txn: Transaction = null // get type for transaction
-  def txnBegin: Unit =  {
-    txn = env.beginTransaction(null, null)
-    ()
+
+  // wrapping transactional calls in do or nothing semantics;
+  // may instead explicitly say
+  // if (bdbTransactional) txn.XXX in insertUserTwit
+  
+  def txnBegin: Unit = bdbTransactional match {
+      case true => txn = env.beginTransaction(null, null)
+      case _ =>
+    }
+  
+  def txnCommit: Unit = bdbTransactional match {
+    case true => txn.commit
+    case _ =>
   }
-  def txnCommit: Unit = txn.commit
-  def txnRollback: Unit = txn.abort
+
+  def txnRollback: Unit =  bdbTransactional match {
+    case true => txn.abort
+    case _ =>
+  }
   
   def finish: Unit = {
     // txnCommit
@@ -312,12 +353,12 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
       t put twit // will cause exception if present and rollback
       val u = UserBDB(uid)
       u.updateUserForTwit(ut)
-      // txnCommit
+      txnCommit
     } catch {
       case e => {
         err.println(e)
         err.println("ROLLBACK uid="+uid+" tid="+tid)
-        // txnRollback
+        txnRollback
       }
     }
   }
@@ -326,7 +367,7 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   // Stream.continually is in 2.8
   def continually[A](elem: => A): Stream[A] = Stream.cons(elem, continually(elem))
   def cursorStream[T](cursor: EntityCursor[T]): Stream[T] =
-    continually(cursor.next _) map (_.apply())
+    continually(cursor.next _) map (_.apply()) takeWhile (_ != null)
 
   def cursorIter[T](cursor: EntityCursor[T])(f: T => Unit): Unit = {
       val x = cursor.next()
