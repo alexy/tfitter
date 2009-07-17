@@ -259,6 +259,11 @@ trait TwitterDB {
 
   // let's make a hard-code one too to compare
   def insertUserTwit(ut: UserTwit)
-  
-  def allUserStats: Stream[UserStats]
+
+  def allUserStatsList:     List[UserStats]  
+  def allUserStatsStream: Stream[UserStats]
+
+  // pardon the pun  
+  abstract class TwIterator extends Iterator[Twit]
+  def allTwits: TwIterator  
 }
