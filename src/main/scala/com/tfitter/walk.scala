@@ -49,7 +49,7 @@ class Repliers {
       case Some(repmap) => repmap get u1 getOrElse (0,0)
       case _ => (0,0)
     }
-    val score = (n12-t12 + n21-t21) * 10 + (n12 min n21) * 10 + n12 + n21 + t12 + t21
+    val score = (n12-t12 + n21-t21) * 10 + (n12 min n21) * 100 + n12 + n21 + t12 + t21
     (u1,u2,n12,n21,t12,t21,score)
   }
 
@@ -97,6 +97,7 @@ object Walk {
         println(reps.toPairs2)
       }
       reps.showTopPairs(100)
+      // TODO dump the full list into a file or BDB
     }
     finally {
       tdb.close
