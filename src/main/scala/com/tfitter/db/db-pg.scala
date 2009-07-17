@@ -226,6 +226,12 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     format (ttUser,ttTime,ttText,twitTable,ttTwit)
     )
 
+  // TODO should we ORDER BY tid?
+  val selectAllTwitsSt = conn prepareStatement (
+    selectAllFmt(4)
+    format (ttUser,ttTime,ttText,ttTwit,twitTable)
+    )
+
   val selectCountReplySt = conn prepareStatement (
     selectCountFmt
     format (replyTable,ttTwit)
@@ -381,7 +387,27 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   val subParams = SubParams(TwitPG,UserPG,()=>(),conn.commit _,conn.rollback _)
   def insertUserTwitB = insertUserTwitCurry(subParams)(_)
   
-  def allUserStats: Stream[UserStats] =
-    for (us <- selectRangeAllSt <<! { r => UserStats(r,r,r,r,r,r,r,r,r,r,r) })
-      yield us
+  def allUserStatsStream: Stream[UserStats] =
+  // for (us <- selectRangeAllSt <<! { r => UserStats(r,r,r,r,r,r,r,r,r,r,r) }) yield us
+    selectRangeAllSt <<! { r => UserStats(r,r,r,r,r,r,r,r,r,r,r) }
+
+  // is there a more direct way to get the List instead of Stream via RichSQL?
+  def allUserStatsList: List[UserStats] = allUserStatsStream.toList
+
+  class TwIteratorPG extends TwIterator {
+    val st: Stream[Twit] = selectAllTwitsSt <<! { r => val tid: TwitID = r
+            val reply = { selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } firstOption }
+            Twit(tid,r,r,r,reply) }
+    def hasNext = !st.isEmpty
+    def next = st.head
+    // can get a Stream iterator and implement ours with it,
+    // but those next/hasNext wrap the same head/!sEmpty,
+    // so it's not really necessary and isn't really shorter...
+    // TODO can we structure the class to use .elements shorter?
+    //val sit = st.elements // st.iterator in 2.8
+    //def hasNext = sit.hasNext
+    //def next = sit.next
+  }
+
+  def allTwits: TwIterator = new TwIteratorPG
 }
