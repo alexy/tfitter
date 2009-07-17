@@ -3,13 +3,14 @@ package com.tfitter
 import db.types._
 import db.{Twit}
 import db.{TwitterBDB,BdbArgs,BdbFlags}
+import scala.List
 import System.err
 import scala.collection.mutable.{Map=>UMap}
 
 // case class DialogCount1(u1: UserID, u2: UserID, n12: TwitCount) //, n21: TwitCount
 
 class Repliers {
-  type RepCount = UMap[UserID,TwitCount]
+  type RepCount = UMap[UserID,(TwitCount,TwitCount)]
   var reps: UMap[UserID, RepCount] = UMap.empty
 
   // TODO here goes our favorite non-autovivification,
@@ -20,13 +21,17 @@ class Repliers {
       case Some(reply) =>
         val uid = twit.uid
         val ruid = reply.replyUser
+        val tinc = if (reply.replyTwit.isEmpty) 0 else 1
         val u = reps.get(uid)
            u match {
              case Some(repcount) => repcount.get(ruid) match {
-               case Some(count) => reps(uid)(ruid) += 1
-               case _ => reps(uid)(ruid) = 1
+               case Some((numUser,numTwit)) => {
+                 val x = reps(uid)(ruid)
+                 reps(uid)(ruid) = (x._1 + 1, x._2 + tinc)
+               }
+               case _ => reps(uid)(ruid) = (1, tinc)
              }
-             case _ => reps(uid) = UMap(ruid->1)
+             case _ => reps(uid) = UMap(ruid->(1, tinc))
            }
     }
   }
@@ -34,24 +39,24 @@ class Repliers {
   def toPairs1 = {
     val ll = reps.toList.map {
       case (uid,repcount) => repcount.toList map {
-            case (ruid,n12) => (uid,ruid,n12) }
+            case (ruid,(n12,t12)) => (uid,ruid,n12,t12) }
       }
     List.flatten(ll)
   }
 
-  def toPairs2 = toPairs1 map { case (u1,u2,n12) =>
-    val n21 = reps get u2 match {
-      case Some(repmap) => repmap get u1 getOrElse 0
-      case _ => 0
+  def toPairs2 = toPairs1 map { case (u1,u2,n12,t12) =>
+    val (n21,t21) = reps get u2 match {
+      case Some(repmap) => repmap get u1 getOrElse (0,0)
+      case _ => (0,0)
     }
-    val score = (n12 min n21) * 100 + n12 + n21
-    (u1,u2,n12,n21,score)
+    val score = (n12-t12 + n21-t21) * 10 + (n12 min n21) * 10 + n12 + n21 + t12 + t21
+    (u1,u2,n12,n21,t12,t21,score)
   }
 
   def topPairs = toPairs2 sort (_._5 > _._5)
 
   def showTopPairs(n: Int) = (topPairs take n) foreach { e =>
-    println("%d %d %d %d %d" format (e._1, e._2, e._3, e._4, e._5))
+    println("%d %d %d %d %d %d %d" format (e._1, e._2, e._3, e._4, e._5, e._6, e._7))
   }
   override def toString = reps.toString
 }
@@ -86,9 +91,11 @@ object Walk {
         if (i % 10000 == 0) err.print('.')
       }
 
-      println(reps)
-      println(reps.toPairs1)
-      println(reps.toPairs2)
+      if (reps.reps.size <= 100) {
+        println(reps)
+        println(reps.toPairs1)
+        println(reps.toPairs2)
+      }
       reps.showTopPairs(100)
     }
     finally {
