@@ -53,7 +53,7 @@ class Repliers {
     (u1,u2,n12,n21,t12,t21,score)
   }
 
-  def topPairs = toPairs2 sort (_._5 > _._5)
+  def topPairs = toPairs2 sort (_._7 > _._7)
 
   def showTopPairs(n: Int) = (topPairs take n) foreach { e =>
     println("%d %d %d %d %d %d %d" format (e._1, e._2, e._3, e._4, e._5, e._6, e._7))
@@ -88,7 +88,7 @@ object Walk {
       var reps = new Repliers
       for ((t,i) <- tdb.allTwits.zipWithIndex) {
         reps.addTwit(t)
-        if (i % 10000 == 0) err.print('.')
+        if (i % 100000 == 0) err.print('.')
       }
 
       if (reps.reps.size <= 100) {
