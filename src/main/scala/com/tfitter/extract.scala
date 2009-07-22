@@ -86,7 +86,8 @@ object Status {
               }
             }
             catch {
-              case BadStatus(reason) => err.println("*** BAD STATUS:"+reason+" \nline:"+s)
+              // TODO Now, for delete statuses, we must return None from JSON
+              case BadStatus(reason) => // err.println("*** BAD STATUS:"+reason+" \nline:"+s)
             }
             finally {
               readLines ! self
