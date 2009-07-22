@@ -5,7 +5,7 @@ import com.tfitter.Status._
 import System.err
 import java.io.PrintStream
 
-object DbMain {
+object Db {
   // simple testing version where inserters just print their inputs
   def printer: Array[String] => Unit = { args => 
 
@@ -120,8 +120,15 @@ object DbMain {
     inserters foreach (_.start)
     parsers foreach (_.start)
   }
+}
 
+object MainInsertBDB {
   def main(args: Array[String]) =
-    inserterBDB(args)
+    Db.inserterBDB(args)
     // printer(args)
+}
+
+object MainInsertPG {
+  def main(args: Array[String]) =
+    Db.inserterPG(args)  
 }

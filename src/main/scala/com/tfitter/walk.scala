@@ -98,6 +98,7 @@ object Walk {
       }
       reps.showTopPairs(100)
       // TODO dump the full list into a file or BDB
+      // TODO gather top 50000 different from top pairers
     }
     finally {
       tdb.close

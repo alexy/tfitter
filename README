@@ -1,4 +1,10 @@
-The Tfitter project aims to crawl Twitter with Scala, 
+The Tfitter project aims to store Twitter data with Scala in backends
+such as 
+
+-- PostgreSQL
+-- Berkeley DB Java Edition
+-- Lucene
+ 
 for subsequent analysis of the contents and the conversations 
 in the context of Machine Learning and Natural Language Processing.
 
