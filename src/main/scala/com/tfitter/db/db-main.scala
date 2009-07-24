@@ -85,10 +85,10 @@ object Db {
       case _ => Config.bdbCacheSize
     }
     val bdbFlags = BdbFlags(
-      args.allowCreate   getOrElse true,
+      args.allowCreate   getOrElse false,
       args.readOnly      getOrElse false,
       args.transactional getOrElse false,
-      args.deferredWrite getOrElse true,
+      args.deferredWrite getOrElse false,
       args.noSync        getOrElse false
     )
     val bdbArgs = {
@@ -139,11 +139,11 @@ case class BdbInserterArgs (
   ) {
     override def toString: String = 
     "fileName:"+fileName+
-    ", envName:"+envName+
+    "\n  envName:"+envName+
     ", storeName:"+storeName+
     ", numThreads:"+numThreads+
     ", cacheSize:"+cacheSize+
-    "\nallowCreate:"+allowCreate+
+    "\n  allowCreate:"+allowCreate+
     ", readOnly:"+readOnly+
     ", transactional:"+transactional+
     ", deferredWrite:"+deferredWrite+
