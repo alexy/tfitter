@@ -68,7 +68,8 @@ object Walk {
       false,  // allowCreate
       true,   // readOnly
       false,  // transactional
-      false   // deferred write
+      false,  // deferred write
+      false   // noSync
     )
 
     val bdbCacheSize = None
