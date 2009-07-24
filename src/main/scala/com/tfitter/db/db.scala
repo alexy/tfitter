@@ -1,7 +1,7 @@
 package com.tfitter.db
 
 import org.joda.time.DateTime
-import la.scala.util.Validated
+import org.suffix.util.Validated
 
 object types {
   type UserID = Int

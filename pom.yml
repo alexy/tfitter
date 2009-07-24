@@ -1,8 +1,8 @@
-groupId: la.scala
+groupId: org.suffix
 artifactId: "tfitter_${scala.version}"
 version: 0.5
-name: Twitter Crawler
-description: La Scala Twitter Crawler
+name: Tfitter
+description: La Scala Twitter Data Miner
 url: "http://tfitter.com/"
 properties:
   java.src.version: 1.6
@@ -34,10 +34,12 @@ dependencies:
   - { groupId: joda-time, artifactId: joda-time, version: 1.6 }
   - { groupId: commons-lang, artifactId: commons-lang, version: 2.4 }
   - { groupId: com.twitter, artifactId: "scala-json_${scala.version}", version: 1.0 }
-  - { groupId: la.scala.sql, artifactId: "rich_${scala.version}", version: 1.0 }
-  - { groupId: la.scala, artifactId: "util_${scala.version}", version: 1.0 }
+  - { groupId: org.suffix.sql, artifactId: "rich_${scala.version}", version: 1.0 }
+  - { groupId: org.suffix, artifactId: "util_${scala.version}", version: 1.0 }
   - { groupId: org.codehaus.jackson, artifactId: jackson-core-lgpl, version: 1.1.0 }
   - { groupId: org.codehaus.jackson, artifactId: jackson-mapper-lgpl, version: 1.1.0 }
+  - { groupId: berkeleydb, artifactId: je, version: 3.3.82 }
+  - { groupId: optional, artifactId: "optional_${scala.version}", version: 1.0 }
 reporting:
   plugins:
     - { artifactId: maven-scala-plugin, groupId: org.scala-tools }

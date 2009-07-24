@@ -5,7 +5,7 @@ import com.tfitter.db._
 
 object Main {
   // Access would have to be compiled after filtering,
-  // http://la.scala.la/post/124159629/encrypting-and-replacing-passwords-with-maven
+  // http://org.suffix.la/post/124159629/encrypting-and-replacing-passwords-with-maven
   // import Access.{twitterUser, twitterPassword}
   
   // def queryTwitter(twitterUser: String, twitterPassword: String) {
@@ -32,18 +32,16 @@ object Main {
   
 
   def showBdb {
-    // non-transactional read-only
     val bdbFlags = BdbFlags(
-      false, // allowCreate
-      true,  // readOnly
-      false, // transactional
-      false  // deferred write
+      false,  // allowCreate
+      true,   // readOnly
+      false,  // transactional
+      false   // deferred write
     )
-
-    val cacheSize = None
+    val bdbCacheSize = None
     val bdbArgs = {
       import Config.{bdbEnvPath,bdbStoreName}
-      BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,cacheSize)
+      BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
     }
 
     val tdb = new TwitterBDB(bdbArgs)

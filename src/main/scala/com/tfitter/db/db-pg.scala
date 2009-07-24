@@ -31,7 +31,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   val rtReplyUsers = "reply_users"
   val rtFlags      = "flags"
 
-  import la.scala.sql.rich.RichSQL._
+  import org.suffix.sql.rich.RichSQL._
 
   // could use connection properties to set user, pwd, ssl, etc.
   implicit val conn = connect(jdbcUrl, jdbcUser, jdbcPwd)

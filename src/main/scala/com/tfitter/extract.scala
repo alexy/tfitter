@@ -18,7 +18,7 @@ object Status {
   case class Parse(s: String) extends ParserMessage
   case object EndOfInput extends ParserMessage // caused class not found exception!
 
-  // this should go into la.scala.util        
+  // this should go into org.suffix.util        
   def showOption[T](prefix: String, x: Option[T]): String = x match {
     case Some(s) => prefix+s.toString
     case _ => ""
