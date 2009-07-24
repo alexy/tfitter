@@ -2,11 +2,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>la.scala</groupId>
+    <groupId>org.suffix</groupId>
     <artifactId>tfitter_${scala.version}</artifactId>
     <version>0.5</version>
-    <name>Twitter Crawler</name>
-    <description>La Scala Twitter Crawler</description>
+    <name>Tfitter</name>
+    <description>La Scala Twitter Data Miner</description>
     <url>http://tfitter.com/</url>
     <properties>
         <java.src.version>1.6</java.src.version>
@@ -89,12 +89,12 @@
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>la.scala.sql</groupId>
+            <groupId>org.suffix.sql</groupId>
             <artifactId>rich_${scala.version}</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>la.scala</groupId>
+            <groupId>org.suffix</groupId>
             <artifactId>util_${scala.version}</artifactId>
             <version>1.0</version>
         </dependency>
@@ -107,6 +107,16 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-lgpl</artifactId>
             <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>berkeleydb</groupId>
+            <artifactId>je</artifactId>
+            <version>3.3.82</version>
+        </dependency>
+        <dependency>
+            <groupId>optional</groupId>
+            <artifactId>optional_${scala.version}</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
     <reporting>

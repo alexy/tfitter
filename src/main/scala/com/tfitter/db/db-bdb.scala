@@ -6,7 +6,7 @@ import com.sleepycat.je.{Environment, EnvironmentConfig,Transaction}
 import com.sleepycat.persist.{EntityCursor,EntityStore,StoreConfig}
 import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
-// import la.scala.util.bdb.{Env,Store}
+// import org.suffix.util.bdb.{Env,Store}
 import org.joda.time.DateTime
 
 import types._
@@ -189,7 +189,8 @@ case class BdbFlags (
   allowCreate: Boolean,
   readOnly: Boolean,
   transactional: Boolean,
-  deferredWrite: Boolean
+  deferredWrite: Boolean,
+  noSync: Boolean
   )
 
 case class BdbArgs (
@@ -201,7 +202,7 @@ case class BdbArgs (
   
 class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
   val BdbArgs(envPath,storeName,bdbFlags,cacheSize) = bdbArgs
-  val BdbFlags(bdbAllowCreate,bdbReadOnly,bdbTransactional,bdbDeferredWrite) = bdbFlags
+  val BdbFlags(bdbAllowCreate,bdbReadOnly,bdbTransactional,bdbDeferredWrite,bdbNoSync) = bdbFlags
   
   /* Open the JE Environment. */
   val envConfig = new EnvironmentConfig
@@ -220,6 +221,10 @@ class TwitterBDB(bdbArgs: BdbArgs) extends TwitterDB {
       err.println("BDB setting cache size "+n) }
     case _ => err.println("BDB setting NO cache size, using default 60% of Xmx")
   }
+  
+  if (bdbNoSync) { envConfig.setTxnNoSync(true)
+    err.println("BDB setting TxnNoSync") }
+
   val env = new Environment(new File(envPath), envConfig)
 
   /* Open the DPL Store. */

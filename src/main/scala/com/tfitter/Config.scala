@@ -1,6 +1,6 @@
 package com.tfitter
 
-import la.scala.util.Properties
+import org.suffix.util.Properties
 import System.err
 
 object Config {

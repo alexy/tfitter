@@ -36,7 +36,7 @@ object Db {
 
   
   def inserterPG(args: Array[String]) {
-    import la.scala.sql.rich.RichSQL._
+    import org.suffix.sql.rich.RichSQL._
     import com.tfitter.db.JdbcArgs
 
     val numThreads = Config.numCores
@@ -74,20 +74,22 @@ object Db {
   }
 
 
-  def inserterBDB(args: Array[String]) {
+  def inserterBDB(args: BdbInserterArgs) {
     import db.{BdbArgs,BdbFlags}
 
-    val numThreads = 1 // Config.numCores
-    // without L suffix. cache size was int and maxed out at 2g!
-    // val bdbCacheSize: Option[Long] = Some(3*1024*1024*1024L)
-
-    // NB replace by a single bitmasl with named flags
-    // single-threaded non-transactional writing with deferred write
+    val numThreads = args.numThreads getOrElse 1 // or Config.numCores
+    val bdbEnvPath = args.envName getOrElse Config.bdbEnvPath
+    val bdbStoreName = args.storeName getOrElse Config.bdbStoreName
+    val bdbCacheSize = args.cacheSize match {
+      case Some(x) => Some((x*1024*1024*1024).toLong)
+      case _ => Config.bdbCacheSize
+    }
     val bdbFlags = BdbFlags(
-      true,  // allowCreate
-      false, // readOnly
-      false, // transactional
-      true   // deferred write
+      args.allowCreate   getOrElse true,
+      args.readOnly      getOrElse false,
+      args.transactional getOrElse false,
+      args.deferredWrite getOrElse true,
+      args.noSync        getOrElse false
     )
     val bdbArgs = {
       import Config.{bdbEnvPath,bdbStoreName,bdbCacheSize}
@@ -105,7 +107,7 @@ object Db {
     // don't even need ti import java.sql.DriverManager for this,
     // magic -- NB see excatly what it does:
 
-    val readLines = new ReadLines(args(0),numThreads,showingProgress)
+    val readLines = new ReadLines(args.fileName,numThreads,showingProgress)
 
     // before I added type annotation List[Inserter] below,
     // I didn't realize I'm not using a List but get a Range...  added .toList below
@@ -122,10 +124,60 @@ object Db {
   }
 }
 
-object MainInsertBDB {
-  def main(args: Array[String]) =
+
+case class BdbInserterArgs (
+  fileName: String,
+  envName: Option[String],
+  storeName: Option[String],
+  numThreads: Option[Int],
+  cacheSize: Option[Long],
+  allowCreate: Option[Boolean],
+  readOnly: Option[Boolean],
+  transactional: Option[Boolean],
+  deferredWrite: Option[Boolean],
+  noSync: Option[Boolean]
+  ) {
+    override def toString: String = 
+    "fileName:"+fileName+
+    ", envName:"+envName+
+    ", storeName:"+storeName+
+    ", numThreads:"+numThreads+
+    ", cacheSize:"+cacheSize+
+    "\nallowCreate:"+allowCreate+
+    ", readOnly:"+readOnly+
+    ", transactional:"+transactional+
+    ", deferredWrite:"+deferredWrite+
+    ", noSync:"+noSync
+  }
+
+object MainInsertBDB extends optional.Application {
+  def main(
+    fileName: String,
+    envName: Option[String],
+    storeName: Option[String],
+    numThreads: Option[Int],
+    cacheSize: Option[Long],
+    allowCreate: Option[Boolean],
+    readOnly: Option[Boolean],
+    transactional: Option[Boolean],
+    deferredWrite: Option[Boolean],
+    noSync: Option[Boolean]    
+    ) = {
+    val args = BdbInserterArgs(
+      fileName,
+      envName,
+      storeName,
+      numThreads,
+      cacheSize,
+      allowCreate,
+      readOnly,
+      transactional,
+      deferredWrite,
+      noSync
+      )
+    err.println("BDB Inserter Args:"+args)
     Db.inserterBDB(args)
-    // printer(args)
+  }
 }
 
 object MainInsertPG {
