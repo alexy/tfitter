@@ -118,6 +118,11 @@
             <artifactId>optional_${scala.version}</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>kohsuke.org</groupId>
+            <artifactId>bzip2</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
