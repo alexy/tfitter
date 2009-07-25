@@ -7,9 +7,17 @@ import db.{JdbcArgs,TwitterPG} // for PostgreSQL backend
 import db.{BdbArgs,TwitterBDB} // for Berkeley DB backend
 import json.TwitExtract
 
+import java.io.{BufferedReader,InputStreamReader,FileInputStream}
 import scala.io.Source
 import scala.actors.Actor
 import scala.actors.Actor._
+
+// commons-compressor
+// import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream=>Bunzip2InputStream}
+//  - { groupId: commons-compress, artifactId: commons-compress, version:  }
+// http://www.kohsuke.org/bzip2/
+//  - { groupId: kohsuke.org, artifactId: bzip2, version: 1.0 }
+import org.apache.tools.bzip2.{CBZip2InputStream=>Bunzip2InputStream}
 
 case class BadStatus(reason: String) extends Exception(reason)
 
@@ -24,10 +32,17 @@ object Status {
     case _ => ""
   }    
   
-  class ReadLines(source: String, numCallers: Int, progress: Boolean) extends Actor {    
+  class ReadLines(fileName: String, numCallers: Int, progress: Boolean) extends Actor {    
     def act = {
       err.println("ReadLines started, object "+self)
-      val lines = Source.fromFile(source,"UTF-8").getLines.zipWithIndex
+      // wonder if we need codec on top of the bunziooed char stream
+      val inStream: java.io.InputStream = if (fileName.endsWith(".bz2")) new Bunzip2InputStream(new FileInputStream(fileName))
+        else new FileInputStream(fileName) // InputStreamReader?
+      val source = Source.fromInputStream(inStream) // BufferedReader?
+      // alternatively, 
+      // val bread = new BufferedReader(new InputStreamReader(inStream, "UTF-8"))
+      // http://viewfromthefringe.blogspot.com/2007/10/making-bufferedreader-iterable.html
+      val lines = source.getLines.zipWithIndex
       
       var countDown = numCallers
       
