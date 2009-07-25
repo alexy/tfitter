@@ -119,14 +119,9 @@
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>kohsuke.org</groupId>
-            <artifactId>bzip2</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-compress</groupId>
+            <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>20050911</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <reporting>
