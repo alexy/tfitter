@@ -11,7 +11,7 @@
     <properties>
         <java.src.version>1.6</java.src.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>com.tfitter.DbMain</main.class>
+        <main.class>com.tfitter.Walk</main.class>
     </properties>
     <profiles>
         <profile>
@@ -122,6 +122,11 @@
             <groupId>kohsuke.org</groupId>
             <artifactId>bzip2</artifactId>
             <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-compress</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>20050911</version>
         </dependency>
     </dependencies>
     <reporting>
