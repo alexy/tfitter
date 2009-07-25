@@ -12,12 +12,13 @@ import scala.io.Source
 import scala.actors.Actor
 import scala.actors.Actor._
 
-// commons-compressor
+// commons-compressor -- new compress has compressors.bzip2
 // import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream=>Bunzip2InputStream}
-//  - { groupId: commons-compress, artifactId: commons-compress, version:  }
+import org.apache.commons.compress.bzip2.{CBZip2InputStream=>Bunzip2InputStream}
+//  - { groupId: commons-compress, artifactId: commons-compress, version: 20050911 }
 // http://www.kohsuke.org/bzip2/
 //  - { groupId: kohsuke.org, artifactId: bzip2, version: 1.0 }
-import org.apache.tools.bzip2.{CBZip2InputStream=>Bunzip2InputStream}
+// import org.apache.tools.bzip2.{CBZip2InputStream=>Bunzip2InputStream}
 
 case class BadStatus(reason: String) extends Exception(reason)
 
@@ -36,7 +37,12 @@ object Status {
     def act = {
       err.println("ReadLines started, object "+self)
       // wonder if we need codec on top of the bunziooed char stream
-      val inStream: java.io.InputStream = if (fileName.endsWith(".bz2")) new Bunzip2InputStream(new FileInputStream(fileName))
+      val inStream: java.io.InputStream = if (fileName.endsWith(".bz2")) {
+          // https://issues.apache.org/bugzilla/show_bug.cgi?id=15465
+          val is = new FileInputStream(fileName)
+          assert(is.read=='B'); assert(is.read=='Z')
+          new Bunzip2InputStream(is)
+        }
         else new FileInputStream(fileName) // InputStreamReader?
       val source = Source.fromInputStream(inStream) // BufferedReader?
       // alternatively, 
@@ -72,7 +78,7 @@ object Status {
                     }
                   } while (!break)
                 } catch {
-                  case _ => err.println("cannot get line")
+                  case e => err.println("*** CANNOT GET LINE:"+e)
                   a ! EndOfInput
                 }
               }

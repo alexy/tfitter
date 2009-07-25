@@ -7,7 +7,7 @@ url: "http://tfitter.com/"
 properties:
   java.src.version: 1.6
   project.build.sourceEncoding: UTF-8
-  main.class: com.tfitter.DbMain
+  main.class: com.tfitter.Walk
 profiles:
   - activation:
       activeByDefault: true
@@ -41,6 +41,7 @@ dependencies:
   - { groupId: berkeleydb, artifactId: je, version: 3.3.82 }
   - { groupId: optional, artifactId: "optional_${scala.version}", version: 1.0 }
   - { groupId: kohsuke.org, artifactId: bzip2, version: 1.0 }
+  - { groupId: commons-compress, artifactId: commons-compress, version: 20050911 }
 reporting:
   plugins:
     - { artifactId: maven-scala-plugin, groupId: org.scala-tools }
