@@ -73,7 +73,7 @@ object Walk {
     )
 
     val bdbEnvPath = if (args.length > 0) args(0) else Config.bdbEnvPath
-    val bdbCacheSize = None
+    val bdbCacheSize = Some(256*1024*1024L) // None
     
     val bdbArgs = {
       import Config.{bdbStoreName}
