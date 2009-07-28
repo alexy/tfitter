@@ -6,9 +6,13 @@ import db.{TwitterBDB,BdbArgs,BdbFlags}
 import scala.List
 import System.err
 import scala.collection.mutable.{Map=>UMap}
+import java.io.{ObjectOutputStream,FileOutputStream}
+import java.io.{File,ObjectInputStream,FileInputStream}
 
 // case class DialogCount1(u1: UserID, u2: UserID, n12: TwitCount) //, n21: TwitCount
 
+@serializable
+@SerialVersionUID(1L)
 class Repliers {
   type RepCount = UMap[UserID,(TwitCount,TwitCount)]
   var reps: UMap[UserID, RepCount] = UMap.empty
@@ -101,9 +105,36 @@ object Walk {
       reps.showTopPairs(100)
       // TODO dump the full list into a file or BDB
       // TODO gather top 50000 different from top pairers
+      val serName = "repliers.ser"
+      err.print("writing pairs into "+serName+"... ")
+      val oser = new ObjectOutputStream(new FileOutputStream(serName));
+      oser.writeObject(reps)
+      oser.close
+      err.println("done")
+
+      // to read back:
+      // val file = new File("um.ser")
+      // val ins = new ObjectInputStream(new FileInputStream(file))
+      // Deserialize the object
+      // val um1: Um = ins.readObject.asInstanceOf[Um]
+      // ins.close
+
     }
     finally {
       tdb.close
     }
   }
+}
+
+
+object Dessert {
+  def main(args: Array[String]) {
+     // to read back:
+     val file = new File("repliers.ser")
+     val ins = new ObjectInputStream(new FileInputStream(file))
+     val reps: Repliers = ins.readObject.asInstanceOf[Repliers]
+     ins.close
+     err.println("deserialized repliers:")
+     println(reps)
+   }
 }
