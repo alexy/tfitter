@@ -135,6 +135,10 @@ object Dessert {
      val reps: Repliers = ins.readObject.asInstanceOf[Repliers]
      ins.close
      err.println("deserialized repliers:")
-     println(reps)
+     // print all line by line
+     // for ((u1,u2s) <- reps.reps; (u2,(t,u)) <- u2s) {
+     //   println("%d->%d: %d %d" format (u1,u2,t,u))
+     // }
+     reps.showTopPairs(100)
    }
 }
