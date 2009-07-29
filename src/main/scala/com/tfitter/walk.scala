@@ -113,12 +113,13 @@ object Walk {
       err.println("done")
 
       // to read back:
-      // val file = new File("um.ser")
-      // val ins = new ObjectInputStream(new FileInputStream(file))
-      // Deserialize the object
-      // val um1: Um = ins.readObject.asInstanceOf[Um]
-      // ins.close
-
+      /*
+      val file = new File("um.ser")
+      val ins = new ObjectInputStream(new FileInputStream(file))
+      Deserialize the object
+      val um1: Um = ins.readObject.asInstanceOf[Um]
+      ins.close
+      */
     }
     finally {
       tdb.close
@@ -141,4 +142,33 @@ object Dessert {
      // }
      reps.showTopPairs(100)
    }
+}
+
+
+object SaveTopPairs {
+  def main(args: Array[String]) {
+    // to read back:
+    val file = new File("repliers.ser")
+    val ins = new ObjectInputStream(new FileInputStream(file))
+    val reps: Repliers = ins.readObject.asInstanceOf[Repliers]
+    ins.close
+    err.println("deserialized repliers")
+    type Lili = List[(Int,Int,Int,Int,Int,Int,Int)]
+    @serializable
+    val topPairs: Lili = reps.topPairs
+    val tpSerName = "toppairs.ser"
+    err.print("writing top pairs into "+tpSerName+"... ")
+    val oser = new ObjectOutputStream(new FileOutputStream(tpSerName));
+    oser.writeObject(topPairs)
+    oser.close
+    err.println("done")
+
+    /* read back
+    val tpFile = new File(tpSerName)
+    val tpIn = new ObjectInputStream(new FileInputStream(tpFile))
+    val topback: Lili = tpIn.readObject.asInstanceOf[Lili]
+    tpIn.close
+    // if (topback.length < 100) println(topback)
+    */
+  }
 }
