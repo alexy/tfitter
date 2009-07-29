@@ -1,4 +1,4 @@
-package com.tfitter
+package com.tfitter.walk
 
 import db.types._
 import db.{Twit}
@@ -65,7 +65,7 @@ class Repliers {
   override def toString = reps.toString
 }
 
-object Walk {
+object SaveRepliers {
   def main(args: Array[String]) {
     // non-transactional read-only
     val bdbFlags = BdbFlags(
@@ -111,15 +111,6 @@ object Walk {
       oser.writeObject(reps)
       oser.close
       err.println("done")
-
-      // to read back:
-      /*
-      val file = new File("um.ser")
-      val ins = new ObjectInputStream(new FileInputStream(file))
-      Deserialize the object
-      val um1: Um = ins.readObject.asInstanceOf[Um]
-      ins.close
-      */
     }
     finally {
       tdb.close
@@ -131,10 +122,11 @@ object Walk {
 object Dessert {
   def main(args: Array[String]) {
      // to read back:
-     val file = new File("repliers.ser")
-     val ins = new ObjectInputStream(new FileInputStream(file))
-     val reps: Repliers = ins.readObject.asInstanceOf[Repliers]
-     ins.close
+    val repSerName = "repliers.ser"
+    val repFile = new File(repSerName)
+    val repIn = new ObjectInputStream(new FileInputStream(repFile))
+    val reps: Repliers = repIn.readObject.asInstanceOf[Repliers]
+    repIn.close
      err.println("deserialized repliers:")
      // print all line by line
      // for ((u1,u2s) <- reps.reps; (u2,(t,u)) <- u2s) {
@@ -144,14 +136,15 @@ object Dessert {
    }
 }
 
-
+ 
 object SaveTopPairs {
   def main(args: Array[String]) {
     // to read back:
-    val file = new File("repliers.ser")
-    val ins = new ObjectInputStream(new FileInputStream(file))
-    val reps: Repliers = ins.readObject.asInstanceOf[Repliers]
-    ins.close
+    val repSerName = "repliers.ser"
+    val repFile = new File(repSerName)
+    val repIn = new ObjectInputStream(new FileInputStream(repFile))
+    val reps: Repliers = repIn.readObject.asInstanceOf[Repliers]
+    repIn.close
     err.println("deserialized repliers")
     type Lili = List[(Int,Int,Int,Int,Int,Int,Int)]
     @serializable
@@ -171,4 +164,23 @@ object SaveTopPairs {
     // if (topback.length < 100) println(topback)
     */
   }
+}
+
+
+object Triangle1 {
+  def main(args: Array[String]) {
+    val repSerName = "repliers.ser"
+    val repFile = new File(repSerName)
+    val repIn = new ObjectInputStream(new FileInputStream(repFile))
+    val reps: Repliers = repIn.readObject.asInstanceOf[Repliers]
+    repIn.close
+    err.println("deserialized repliers")
+    type Lili = List[(Int,Int,Int,Int,Int,Int,Int)]
+    val tpSerName = "toppairs.ser"
+    val tpFile = new File(tpSerName)
+    val tpIn = new ObjectInputStream(new FileInputStream(tpFile))
+    val topback: Lili = tpIn.readObject.asInstanceOf[Lili]
+    tpIn.close
+    if (topback.length < 100) println(topback)
+  }   
 }
