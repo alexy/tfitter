@@ -50,6 +50,11 @@ class RepPairBDB {
   def toRepPair: RepPair = RepPair(s.intValue,t.intValue,reps.intValue,dirs.intValue)
 }
 
+object types {
+  type FixedRepliers = Map[UserID, Map[UserID,(TwitCount,TwitCount)]]
+}
+import types._
+
 class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
   val rpPrimaryIndex =
     store.getPrimaryIndex(classOf[java.lang.Long], classOf[RepPairBDB])
@@ -68,18 +73,20 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     err.println
   }
   
-  def loadMap(showProgress: Boolean): Unit = { 
+  def loadMap(showProgress: Boolean): FixedRepliers = { 
     val curIter = new CursorIterator(rpPrimaryIndex.entities)
-    var reps: Map[UserID, Map[UserID,(TwitCount,TwitCount)]] = Map.empty
+    var reps: FixedRepliers = Map.empty
 
     var edgeCount = 0
     for (ej <- curIter) {
       val e: RepPair = ej.toRepPair
       if (reps.contains(e.s)) reps(e.s)(e.t) = (e.reps,e.dirs)
       else reps(e.s) = Map(e.t -> (e.reps,e.dirs))
+      edgeCount += 1
       if (showProgress && edgeCount % 100000 == 0) err.print('.')
     }
     err.println
+    reps
   }
 }
 
@@ -163,7 +170,7 @@ object FetchRepliersBDB extends optional.Application {
     val repsDb = new RepliersBDB(bdbArgs)
     
     err.print("Loading Repliers from Berkeley DB... ")
-    val tops = repsDb.loadMap(showingProgress)
+    val reps: FixedRepliers = repsDb.loadMap(showingProgress)
     err.println("done")
   }
 }
