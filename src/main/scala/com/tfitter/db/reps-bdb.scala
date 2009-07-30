@@ -55,7 +55,7 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     store.getPrimaryIndex(classOf[java.lang.Integer], classOf[RepPairBDB])
 
   val rpSecIndexTo =
-      store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Integer], "t")
+      store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Long], "t")
       
   def saveMap(r: Repliers, showProgress: Boolean): Unit = {
     var edgeCount = 0
