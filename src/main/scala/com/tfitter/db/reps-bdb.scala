@@ -9,6 +9,15 @@ import org.suffix.util.bdb.{BdbArgs,BdbFlags,BdbStore}
 
 import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
+import scala.collection.mutable.{Map=>UMap}
+import java.util.{HashMap=>JHashMap}
+
+object types {
+  type RepCount = UMap[UserID,(TwitCount,TwitCount)]
+  type FixedRepliers = Map[UserID, Map[UserID,(TwitCount,TwitCount)]]
+}
+import types._
+
 
 case class RepPair (
   s: UserID,
@@ -50,10 +59,18 @@ class RepPairBDB {
   def toRepPair: RepPair = RepPair(s.intValue,t.intValue,reps.intValue,dirs.intValue)
 }
 
-object types {
-  type FixedRepliers = Map[UserID, Map[UserID,(TwitCount,TwitCount)]]
+@Entity
+class UserRepliersBDB {
+  @PrimaryKey
+  var s: java.lang.Integer = null
+  var t: JHashMap[java.lang.Integer,java.lang.Integer] = null
+  var u: JHashMap[java.lang.Integer,java.lang.Integer] = null
+  def this(_s: UserID, r: RepCount) = { this()
+    s = _s
+    // do maps here     
+  }
 }
-import types._
+
 
 class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
   val rpPrimaryIndex =

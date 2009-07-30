@@ -180,6 +180,15 @@ object SaveTopPairs {
 }
 
 
+object ShowTops extends optional.Application {
+  def main(n: Int) {
+    val tpSerName = "toppairs.ser"
+    val tops: Replist  = loadReplist(tpSerName)
+    println(tops.take(n))
+  }     
+}
+
+
 object Triangle1 {
   def main(args: Array[String]) {
     val repSerName = "repliers.ser"
