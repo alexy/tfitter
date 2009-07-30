@@ -1,8 +1,9 @@
 package com.tfitter.walk
 
+import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 import db.types._
 import db.{Twit}
-import db.{TwitterBDB,BdbArgs,BdbFlags}
+import db.TwitterBDB
 import scala.List
 import System.err
 import scala.collection.mutable.{Map=>UMap}
@@ -136,33 +137,45 @@ object Dessert {
    }
 }
 
- 
-object SaveTopPairs {
-  def main(args: Array[String]) {
-    // to read back:
-    val repSerName = "repliers.ser"
-    val repFile = new File(repSerName)
+
+object Serialized {
+  type Replist = List[(Int,Int,Int,Int,Int,Int,Int)]
+  def loadRepliers(fileName: String): Repliers = {
+    err.print("reading repliers from "+fileName+"... ")
+    val repFile = new File(fileName)
     val repIn = new ObjectInputStream(new FileInputStream(repFile))
     val reps: Repliers = repIn.readObject.asInstanceOf[Repliers]
     repIn.close
-    err.println("deserialized repliers")
-    type Lili = List[(Int,Int,Int,Int,Int,Int,Int)]
-    @serializable
-    val topPairs: Lili = reps.topPairs
-    val tpSerName = "toppairs.ser"
-    err.print("writing top pairs into "+tpSerName+"... ")
-    val oser = new ObjectOutputStream(new FileOutputStream(tpSerName));
-    oser.writeObject(topPairs)
+    err.println("done")
+    reps
+  }
+  def loadReplist(fileName: String): Replist = {
+    err.print("reading top pairs from "+fileName+"... ")
+    val tpFile = new File(fileName)
+    val tpIn = new ObjectInputStream(new FileInputStream(tpFile))
+    val tops: Replist = tpIn.readObject.asInstanceOf[Replist]
+    tpIn.close
+    err.println("done")
+    tops
+  } 
+  def saveReplist(tops: Replist, fileName: String): Unit = {
+    err.print("writing top pairs into "+fileName+"... ")
+    val oser = new ObjectOutputStream(new FileOutputStream(fileName));
+    oser.writeObject(tops)
     oser.close
     err.println("done")
-
-    /* read back
-    val tpFile = new File(tpSerName)
-    val tpIn = new ObjectInputStream(new FileInputStream(tpFile))
-    val topback: Lili = tpIn.readObject.asInstanceOf[Lili]
-    tpIn.close
-    // if (topback.length < 100) println(topback)
-    */
+  }
+}
+import Serialized._
+ 
+object SaveTopPairs {
+  def main(args: Array[String]) {
+    val repSerName = "repliers.ser"
+    val reps: Repliers = loadRepliers(repSerName)
+    @serializable
+    val topPairs: Replist = reps.topPairs
+    val tpSerName = "toppairs.ser"
+    saveReplist(topPairs,tpSerName)
   }
 }
 
@@ -170,17 +183,11 @@ object SaveTopPairs {
 object Triangle1 {
   def main(args: Array[String]) {
     val repSerName = "repliers.ser"
-    val repFile = new File(repSerName)
-    val repIn = new ObjectInputStream(new FileInputStream(repFile))
-    val reps: Repliers = repIn.readObject.asInstanceOf[Repliers]
-    repIn.close
-    err.println("deserialized repliers")
-    type Lili = List[(Int,Int,Int,Int,Int,Int,Int)]
+    val reps: Repliers = loadRepliers(repSerName)
     val tpSerName = "toppairs.ser"
-    val tpFile = new File(tpSerName)
-    val tpIn = new ObjectInputStream(new FileInputStream(tpFile))
-    val topback: Lili = tpIn.readObject.asInstanceOf[Lili]
-    tpIn.close
-    if (topback.length < 100) println(topback)
+    val tops: Replist  = loadReplist(tpSerName)
+    val topN = 20
+    println("got "+tops.length+" repliers, here's the first "+topN+": ")
+    println(tops.take(topN))
   }   
 }

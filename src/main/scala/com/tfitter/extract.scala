@@ -4,7 +4,8 @@ import System.err
 
 import db.{UserTwit,DBError}
 import db.{JdbcArgs,TwitterPG} // for PostgreSQL backend
-import db.{BdbArgs,TwitterBDB} // for Berkeley DB backend
+import org.suffix.util.bdb.{BdbArgs,BdbFlags}
+import db.TwitterBDB // for Berkeley DB backend
 import json.TwitExtract
 
 import java.io.{BufferedReader,InputStreamReader,FileInputStream}

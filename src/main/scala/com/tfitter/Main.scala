@@ -2,6 +2,7 @@ package com.tfitter
 
 // import org.talkingpuffin.twitter._
 import com.tfitter.db._
+import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 
 object Main {
   // Access would have to be compiled after filtering,
