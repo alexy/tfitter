@@ -75,7 +75,7 @@ object Db {
 
 
   def inserterBDB(args: BdbInserterArgs) {
-    import db.{BdbArgs,BdbFlags}
+    import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 
     val numThreads = args.numThreads getOrElse 1 // or Config.numCores
     val bdbEnvPath = args.envName getOrElse Config.bdbEnvPath
@@ -91,11 +91,7 @@ object Db {
       args.deferredWrite getOrElse false,
       args.noSync        getOrElse false
     )
-    val bdbArgs = {
-      import Config.{bdbEnvPath,bdbStoreName,bdbCacheSize}
-      BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
-    }
-
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
 
     // make this a parameter:
     val showingProgress = true
