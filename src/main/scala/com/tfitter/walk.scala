@@ -184,7 +184,7 @@ object ShowTops extends optional.Application {
   def main(n: Int) {
     val tpSerName = "toppairs.ser"
     val tops: Replist  = loadReplist(tpSerName)
-    println(tops.take(n))
+    tops.take(n).foreach { x => println(x._1+" "+x._2) }
   }     
 }
 
