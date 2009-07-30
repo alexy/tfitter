@@ -1,4 +1,4 @@
-package com.tfitter.walk
+package com.tfitter
 
 import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 import db.types._
