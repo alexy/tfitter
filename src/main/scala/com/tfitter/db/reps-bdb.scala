@@ -296,3 +296,44 @@ object StoreUserRepsBDB extends optional.Application {
     err.println("done")
   }
 }
+
+
+object FetchUserRepsBDB extends optional.Application {
+  def main(
+    envName: Option[String],
+    storeName: Option[String],
+    cacheSize: Option[Double],
+    allowCreate: Option[Boolean],
+    readOnly: Option[Boolean],
+    transactional: Option[Boolean],
+    deferredWrite: Option[Boolean],
+    noSync: Option[Boolean],
+    showProgress: Option[Boolean],
+    args: Array[String]) = {
+      
+
+    val bdbEnvPath   = envName getOrElse "urs.bdb"// Config.bdbEnvPath
+    val bdbStoreName = storeName getOrElse "repmaps"// Config.bdbStoreName
+    val bdbCacheSize = cacheSize match {
+      case Some(x) => Some((x*1024*1024*1024).toLong)
+      case _ => None // Config.bdbCacheSize
+    }
+    val bdbFlags = BdbFlags(
+      allowCreate   getOrElse false,
+      readOnly      getOrElse true,
+      transactional getOrElse false,
+      deferredWrite getOrElse false,
+      noSync        getOrElse false
+    )
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
+
+    // make this a parameter:
+    val showingProgress = showProgress getOrElse true
+
+    val ursDb = new RepMapsBDB(bdbArgs)
+    
+    err.print("Loading Repliers from Berkeley DB... ")
+    val reps: ReplierMap = ursDb.loadMap(showingProgress)
+    err.println("done")
+  }
+}
