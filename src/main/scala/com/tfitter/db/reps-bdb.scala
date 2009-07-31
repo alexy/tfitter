@@ -337,3 +337,89 @@ object FetchUserRepsBDB extends optional.Application {
     err.println("done")
   }
 }
+
+
+@Entity
+class ScalaRepsBDB {
+  @PrimaryKey
+  var s: UserID = 0
+  var rc: RepCount = UMap.empty
+  def this(_s: UserID, _rc: RepCount) = { this()
+    s = _s
+    rc = _rc
+  }
+}
+
+class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
+  val urPrimaryIndex =
+    store.getPrimaryIndex(classOf[UserID], classOf[ScalaRepsBDB])
+      
+  def saveMap(r: Repliers, showProgress: Boolean): Unit = {
+    var userCount = 0
+    for ((s,rc) <- r.reps) {
+      val userReps = new ScalaRepsBDB(s,rc)
+      urPrimaryIndex.put(txn, userReps)
+      userCount += 1
+      if (showProgress && userCount % 100000 == 0) err.print('.')
+    }
+    err.println
+  }
+  
+  def loadMap(showProgress: Boolean): ReplierMap = { 
+    val curIter = new CursorIterator(urPrimaryIndex.entities)
+    var reps: ReplierMap = UMap.empty
+
+    var userCount = 0
+    for (ur <- curIter) {
+      reps(ur.s) = ur.rc
+      userCount += 1
+      if (showProgress && userCount % 100000 == 0) err.print('.')
+    }
+    err.println
+    reps
+  }
+}
+
+
+object StoreScalaRepsBDB extends optional.Application {
+  def main(
+    envName: Option[String],
+    storeName: Option[String],
+    cacheSize: Option[Double],
+    allowCreate: Option[Boolean],
+    readOnly: Option[Boolean],
+    transactional: Option[Boolean],
+    deferredWrite: Option[Boolean],
+    noSync: Option[Boolean],
+    showProgress: Option[Boolean],
+    args: Array[String]) = {
+      
+    val repSerName: String = args(0) // need it
+
+    val bdbEnvPath   = envName getOrElse "urs.bdb"// Config.bdbEnvPath
+    val bdbStoreName = storeName getOrElse "repmaps"// Config.bdbStoreName
+    val bdbCacheSize = cacheSize match {
+      case Some(x) => Some((x*1024*1024*1024).toLong)
+      case _ => None // Config.bdbCacheSize
+    }
+    val bdbFlags = BdbFlags(
+      allowCreate   getOrElse false,
+      readOnly      getOrElse false,
+      transactional getOrElse false,
+      deferredWrite getOrElse false,
+      noSync        getOrElse false
+    )
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
+
+    // make this a parameter:
+    val showingProgress = showProgress getOrElse true
+
+    val urscDb = new ScalaMapsBDB(bdbArgs)
+    
+    val reps: Repliers = loadRepliers(repSerName)
+    
+    err.print("Saving Repliers to Berkeley DB... ")
+    urscDb.saveMap(reps,showingProgress)
+    err.println("done")
+  }
+}
