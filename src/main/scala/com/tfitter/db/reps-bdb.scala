@@ -342,7 +342,7 @@ object FetchUserRepsBDB extends optional.Application {
 @Entity
 class ScalaRepsBDB {
   @PrimaryKey
-  var s: UserID = 0
+  var s: JInt = 0
   var rc: RepCount = UMap.empty
   def this(_s: UserID, _rc: RepCount) = { this()
     s = _s
@@ -352,7 +352,8 @@ class ScalaRepsBDB {
 
 class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
   val urPrimaryIndex =
-    store.getPrimaryIndex(classOf[UserID], classOf[ScalaRepsBDB])
+// Caused by: java.lang.IllegalArgumentException: Wrong primary key class: int Correct class is: java.lang.Integer  
+    store.getPrimaryIndex(classOf[JInt], classOf[ScalaRepsBDB])
       
   def saveMap(r: Repliers, showProgress: Boolean): Unit = {
     var userCount = 0
@@ -371,7 +372,7 @@ class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
 
     var userCount = 0
     for (ur <- curIter) {
-      reps(ur.s) = ur.rc
+      reps(ur.s.intValue) = ur.rc
       userCount += 1
       if (showProgress && userCount % 100000 == 0) err.print('.')
     }
@@ -396,7 +397,7 @@ object StoreScalaRepsBDB extends optional.Application {
       
     val repSerName: String = args(0) // need it
 
-    val bdbEnvPath   = envName getOrElse "ursc.bdb"// Config.bdbEnvPath
+    val bdbEnvPath   = envName   getOrElse "ursc.bdb"// Config.bdbEnvPath
     val bdbStoreName = storeName getOrElse "scamaps"// Config.bdbStoreName
     val bdbCacheSize = cacheSize match {
       case Some(x) => Some((x*1024*1024*1024).toLong)
