@@ -181,10 +181,16 @@ object SaveTopPairs {
 
 
 object ShowTops extends optional.Application {
-  def main(n: Int) {
+  def main(n: Int, two: Option[Boolean]) {
     val tpSerName = "toppairs.ser"
     val tops: Replist  = loadReplist(tpSerName)
-    tops.take(n).foreach { x => println(x._1+" "+x._2) }
+    val twoCols: Boolean = two getOrElse false
+    if (twoCols)
+      tops.take(n).foreach { x => println(x._1+" "+x._2) }
+    else
+      tops.take(n) foreach { e =>
+        println("%d %d %d %d %d %d %d" format (e._1, e._2, e._3, e._4, e._5, e._6, e._7))
+      }
   }     
 }
 
