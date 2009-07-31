@@ -7,7 +7,7 @@ import com.tfitter.Serialized.loadRepliers
 
 import org.suffix.util.bdb.{BdbArgs,BdbFlags,BdbStore}
 
-import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
+import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey,Persistent}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
 import scala.collection.mutable.{Map=>UMap}
 
@@ -339,14 +339,21 @@ object FetchUserRepsBDB extends optional.Application {
 }
 
 
+@Persistent
+class PerRepCount {
+  var rc: RepCount = UMap.empty
+  def set(_rc: RepCount) = rc = _rc
+  def get: RepCount = rc
+}
+
 @Entity
 class ScalaRepsBDB {
   @PrimaryKey
   var s: JInt = 0
-  var rc: RepCount = UMap.empty
+  var rc: PerRepCount = new PerRepCount
   def this(_s: UserID, _rc: RepCount) = { this()
     s = _s
-    rc = _rc
+    rc.set(_rc)
   }
 }
 
@@ -359,6 +366,7 @@ class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     var userCount = 0
     for ((s,rc) <- r.reps) {
       val userReps = new ScalaRepsBDB(s,rc)
+// Caused by: java.lang.IllegalArgumentException: Class could not be loaded or is not persistent: scala.collection.mutable.HashMap
       urPrimaryIndex.put(txn, userReps)
       userCount += 1
       if (showProgress && userCount % 100000 == 0) err.print('.')
@@ -372,7 +380,7 @@ class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
 
     var userCount = 0
     for (ur <- curIter) {
-      reps(ur.s.intValue) = ur.rc
+      reps(ur.s.intValue) = ur.rc.get
       userCount += 1
       if (showProgress && userCount % 100000 == 0) err.print('.')
     }
