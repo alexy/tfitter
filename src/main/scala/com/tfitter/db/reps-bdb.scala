@@ -11,7 +11,7 @@ import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
 import scala.collection.mutable.{Map=>UMap}
 
-import java.lang.{Integer=>JInt}
+import java.lang.{Integer=>JInt,Long=>JLong}
 import java.util.{HashMap=>JHMap}
 
 object types {
@@ -39,7 +39,7 @@ class RepPairBDB {
   // or can just shift two Ints into a Long
   @PrimaryKey
   // var st: java.util.AbstractMap.SimpleImmutableEntry[java.lang.Integer,java.lang.Integer] = null
-  var st: JInt = null
+  var st: JLong = null
   @SecondaryKey{val relate=MANY_TO_ONE}
   var s: JInt = null
   @SecondaryKey{val relate=MANY_TO_ONE}
