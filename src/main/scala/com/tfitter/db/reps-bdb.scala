@@ -396,8 +396,8 @@ object StoreScalaRepsBDB extends optional.Application {
       
     val repSerName: String = args(0) // need it
 
-    val bdbEnvPath   = envName getOrElse "urs.bdb"// Config.bdbEnvPath
-    val bdbStoreName = storeName getOrElse "repmaps"// Config.bdbStoreName
+    val bdbEnvPath   = envName getOrElse "ursc.bdb"// Config.bdbEnvPath
+    val bdbStoreName = storeName getOrElse "scamaps"// Config.bdbStoreName
     val bdbCacheSize = cacheSize match {
       case Some(x) => Some((x*1024*1024*1024).toLong)
       case _ => None // Config.bdbCacheSize
