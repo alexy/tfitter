@@ -1,5 +1,6 @@
 package com.tfitter.db.graph
 
+import util.Sorting.stableSort
 import System.err
 import db.types._
 import com.tfitter.Repliers
@@ -15,6 +16,7 @@ import java.lang.{Integer=>JInt,Long=>JLong}
 import java.util.{HashMap=>JHMap}
 
 object types {
+  type RePair = (UserID,(TwitCount,TwitCount))
   type RepCount = UMap[UserID,(TwitCount,TwitCount)]
   type ReplierMap = UMap[Int,RepCount]
   type FixedRepliers = Map[UserID, Map[UserID,(TwitCount,TwitCount)]]
@@ -251,6 +253,14 @@ class RepMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     err.println
     reps
   }
+  
+  def getReps(u: UserID): Option[RepCount] = {
+    val uj = urPrimaryIndex.get(u)
+    uj match {
+      case null => None
+      case u => Some(u.toUserReps.rc)
+    }
+  }
 }
 
 
@@ -339,6 +349,8 @@ object FetchUserRepsBDB extends optional.Application {
 }
 
 
+// this doesn't work -- we need a PersistentProxy
+// for Scala HashMap
 @Persistent
 class PerRepCount {
   var rc: RepCount = UMap.empty
@@ -430,5 +442,70 @@ object StoreScalaRepsBDB extends optional.Application {
     err.print("Saving Repliers to Berkeley DB... ")
     urscDb.saveMap(reps,showingProgress)
     err.println("done")
+  }
+}
+
+
+object PairsBDB extends optional.Application {
+  def repairGreater(a: RePair,b: RePair) = a._1 > b._1
+  
+  def common(a: List[RePair],b: Array[RePair]): Option[UserID] = {
+    def aux(l: List[RePair]): Option[UserID] = l match {
+      case (s,(t,u))::xs => b.find(_._1==s) match {
+        case Some(_) => Some(s)
+        case _ => aux(xs)
+      }
+      case _ => None
+    }
+    aux(a)
+  }
+  
+  def main(
+    envName: Option[String],
+    storeName: Option[String],
+    cacheSize: Option[Double],
+    allowCreate: Option[Boolean],
+    readOnly: Option[Boolean],
+    transactional: Option[Boolean],
+    deferredWrite: Option[Boolean],
+    noSync: Option[Boolean],
+    showProgress: Option[Boolean],
+    args: Array[String]) = {
+      
+
+    val bdbEnvPath   = envName getOrElse "urs.bdb"// Config.bdbEnvPath
+    val bdbStoreName = storeName getOrElse "repmaps"// Config.bdbStoreName
+    val bdbCacheSize = cacheSize match {
+      case Some(x) => Some((x*1024*1024*1024).toLong)
+      case _ => None // Config.bdbCacheSize
+    }
+    val bdbFlags = BdbFlags(
+      allowCreate   getOrElse false,
+      readOnly      getOrElse true,
+      transactional getOrElse false,
+      deferredWrite getOrElse false,
+      noSync        getOrElse false
+    )
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
+
+    // make this a parameter:
+    val showingProgress = showProgress getOrElse true
+
+    val udb = new RepMapsBDB(bdbArgs)
+
+    val u1: UserID = 29524566 // Just_toddy
+    val u1reps: RepCount = udb.getReps(u1) getOrElse error("no reps for "+u1)
+    println(u1reps)
+    
+    val u2: UserID = 12921202 // myleswillsaveus
+    val u2reps: RepCount = udb.getReps(u2) getOrElse error("no reps for "+u1)
+    println(u2reps)
+    
+    val u1a = u1reps.toList.sort(_._2._1 > _._2._1)
+    val u2a = u2reps.toArray
+    stableSort(u2a,repairGreater _)
+    
+    val c: Option[UserID] = common(u1a, u2a)
+    println(c)
   }
 }
