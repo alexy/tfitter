@@ -524,6 +524,8 @@ object PairsBDB extends optional.Application {
 
     val udb = if (usingPairs) new RepliersBDB(bdbArgs)
       else new RepMapsBDB(bdbArgs)
+      
+    err.println("udb class: "+udb.getClass)
 
     val u1: UserID = 29524566 // Just_toddy
     val u1reps: RepCount = udb.getReps(u1) getOrElse error("no reps for "+u1)
