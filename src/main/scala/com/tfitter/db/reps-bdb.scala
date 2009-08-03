@@ -103,9 +103,19 @@ class UserRepsBDB {
 }
 
 
-class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
+trait RepsBDB {
+  def saveMap(r: Repliers, showProgress: Boolean): Unit
+  def loadMap(showProgress: Boolean): ReplierMap
+  def getReps(u: UserID): Option[RepCount]
+}
+
+
+class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
   val rpPrimaryIndex =
     store.getPrimaryIndex(classOf[java.lang.Long], classOf[RepPairBDB])
+
+  val rpSecIndexFrom =
+      store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Integer], "s")
 
   val rpSecIndexTo =
       store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Integer], "t")
@@ -121,7 +131,7 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     err.println
   }
   
-  def loadMap(showProgress: Boolean): FixedRepliers = { 
+  def loadMap(showProgress: Boolean): ReplierMap = { 
     val curIter = new CursorIterator(rpPrimaryIndex.entities)
     var reps: FixedRepliers = Map.empty
 
@@ -129,12 +139,30 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
     for (ej <- curIter) {
       val e: RepPair = ej.toRepPair
       if (reps.contains(e.s)) reps(e.s)(e.t) = (e.reps,e.dirs)
+      // = Map(x->y) is harder to do with UMap,
+      // hence FixedRepliers -- and immutable at that!
+      // alas, we have to cast back to mutable ReplierMap
+      // to fit the trait RepsBDB which also fits RepMaps
       else reps(e.s) = Map(e.t -> (e.reps,e.dirs))
       edgeCount += 1
       if (showProgress && edgeCount % 100000 == 0) err.print('.')
     }
     err.println
-    reps
+    reps.asInstanceOf[ReplierMap]
+  }
+  
+  def getReps(u: UserID): Option[RepCount] = {
+    val curIter = new CursorIterator(rpSecIndexFrom.subIndex(u).entities)
+    val rc: RepCount = UMap.empty
+    
+    for (ej <- curIter) {
+      val e: RepPair = ej.toRepPair
+      assert(e.s == u)
+      rc(e.t) = (e.reps,e.dirs)
+    }
+    // == UMap.empty or count edges inserted vs 0:
+    if (rc == UMap.empty) None
+    else Some(rc)
   }
 }
 
@@ -218,13 +246,13 @@ object FetchRepliersBDB extends optional.Application {
     val repsDb = new RepliersBDB(bdbArgs)
     
     err.print("Loading Repliers from Berkeley DB... ")
-    val reps: FixedRepliers = repsDb.loadMap(showingProgress)
+    val reps: ReplierMap = repsDb.loadMap(showingProgress)
     err.println("done")
   }
 }
 
 
-class RepMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
+class RepMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
   val urPrimaryIndex =
     store.getPrimaryIndex(classOf[JInt], classOf[UserRepsBDB])
       
@@ -470,11 +498,14 @@ object PairsBDB extends optional.Application {
     deferredWrite: Option[Boolean],
     noSync: Option[Boolean],
     showProgress: Option[Boolean],
+    usePairs: Option[Boolean],
     args: Array[String]) = {
       
-
-    val bdbEnvPath   = envName getOrElse "urs.bdb"// Config.bdbEnvPath
-    val bdbStoreName = storeName getOrElse "repmaps"// Config.bdbStoreName
+    val usingPairs = usePairs getOrElse false
+    
+    val bdbEnvPath   = envName getOrElse (if (usingPairs) "reps.bdb" else "urs.bdb")
+    val bdbStoreName = storeName getOrElse (if (usingPairs) "repliers" else "repmaps")
+    
     val bdbCacheSize = cacheSize match {
       case Some(x) => Some((x*1024*1024*1024).toLong)
       case _ => None // Config.bdbCacheSize
@@ -491,7 +522,8 @@ object PairsBDB extends optional.Application {
     // make this a parameter:
     val showingProgress = showProgress getOrElse true
 
-    val udb = new RepMapsBDB(bdbArgs)
+    val udb = if (usingPairs) new RepliersBDB(bdbArgs)
+      else new RepMapsBDB(bdbArgs)
 
     val u1: UserID = 29524566 // Just_toddy
     val u1reps: RepCount = udb.getReps(u1) getOrElse error("no reps for "+u1)
