@@ -475,19 +475,7 @@ object StoreScalaRepsBDB extends optional.Application {
 
 
 object PairsBDB extends optional.Application {
-  def repairGreater(a: RePair,b: RePair) = a._1 > b._1
-  
-  def common(a: List[RePair],b: Array[RePair]): Option[UserID] = {
-    def aux(l: List[RePair]): Option[UserID] = l match {
-      case (s,(t,u))::xs => b.find(_._1==s) match {
-        case Some(_) => Some(s)
-        case _ => aux(xs)
-      }
-      case _ => None
-    }
-    aux(a)
-  }
-  
+ 
   def main(
     envName: Option[String],
     storeName: Option[String],
@@ -528,18 +516,102 @@ object PairsBDB extends optional.Application {
     err.println("udb class: "+udb.getClass)
 
     val u1: UserID = 29524566 // Just_toddy
-    val u1reps: RepCount = udb.getReps(u1) getOrElse error("no reps for "+u1)
-    println(u1reps)
     
     val u2: UserID = 12921202 // myleswillsaveus
-    val u2reps: RepCount = udb.getReps(u2) getOrElse error("no reps for "+u1)
-    println(u2reps)
     
-    val u1a = u1reps.toList.sort(_._2._1 > _._2._1)
-    val u2a = u2reps.toArray
-    stableSort(u2a,repairGreater _)
+    println(udb.getReps(u1))
+    println(udb.getReps(u2))
     
-    val c: Option[UserID] = common(u1a, u2a)
-    println(c)
+    import Communities._
+    List[UserPair]((29524566,12921202),
+    (25688017,14742479),(14742479,25688017),(30271870,26073346),
+    (26073346,30271870),(12921202,29524566),(29524566,12921202))
+    .foreach { up: UserPair =>
+      val com: Community = triangles(up,udb.getReps _,Some(100),None)
+      println(com)
+      println("-"*50)
+    }
+  }
+} 
+
+object Communities {
+  import scala.collection.immutable.Queue
+  
+  type Gen = Int
+  type Tie = Int
+  type UserPair = (UserID,UserID)
+  type TiesPair = (Tie,Tie)
+  type UserPairQueue = Queue[(UserPair,Gen)]
+  type UserSet = Set[UserID]
+  type UserTies = (UserID,TiesPair)
+  type ComMember = (UserID,UserPair,TiesPair,Gen)
+  type Community = List[ComMember]
+  type ComTroika = (UserPairQueue,UserSet,Community)
+  
+  def triangles(up: UserPair, getReps: UserID => Option[RepCount],
+    maxTotal: Option[Int], maxGen: Option[Int]): Community = {
+    val (u1,u2) = up  
+      
+    def repairGreater(a: RePair,b: RePair) = a._1 > b._1
+  
+    def common(a: List[RePair], b: Array[RePair], haveSet: UserSet): Option[UserTies] = {
+      def aux(l: List[RePair]): Option[UserTies] = l match {
+        case (s,(t1,u))::xs => if (haveSet contains s) aux(xs)
+        else b.find(_._1==s) match {
+          case Some((_,(t2,_))) => Some((s,(t1,t2)))
+          case _ => aux(xs)
+        }
+        case _ => None
+      }
+      aux(a)
+    }
+    
+    def addPair(troika: ComTroika): (ComTroika,Boolean) = {
+      val (pairs,haveSet,community) = troika
+      if (pairs.isEmpty) return (troika,false)
+      
+      val ((parents @ (u1,u2),parentGen),deQueue) = pairs.dequeue
+      // println("dequeued "+parents)
+      
+      // can we unify return deQueue...true into a single point or single value?
+      
+      if (!maxGen.isEmpty && parentGen >= maxGen.get)   return ((deQueue,haveSet,community),true)
+      // need { return ... } in a block, or illegal start of a simple expression:
+      val u1reps: RepCount = getReps(u1) getOrElse    { return ((deQueue,haveSet,community),true) }
+      // println(u1reps)
+      val u2reps: RepCount = getReps(u2) getOrElse    { return ((deQueue,haveSet,community),true) }
+      // println(u2reps)
+    
+      val u1a = u1reps.toList.sort(_._2._1 > _._2._1)
+      val u2a = u2reps.toArray
+      stableSort(u2a,repairGreater _)
+    
+      val c: Option[UserTies] = common(u1a, u2a, haveSet)
+      // err.println(c)
+      // val s = Set(1,2,3)
+      // s flatMap (x => List((x,x),(x,x+1)))
+      
+      c match {
+        case Some((x,ties)) => 
+          val cGen = parentGen + 1
+          val newQueue = 
+            deQueue enqueue (community map { case (y,_,_,gen) => 
+              ((y,x),gen min cGen) })
+          // println("new queue: "+newQueue)
+          val keepGoing = maxTotal.isEmpty || haveSet.size + 1 < maxTotal.get
+          ((newQueue,haveSet+x,(x,parents,ties,cGen)::community),keepGoing)
+        case _ => ((deQueue,haveSet,community),true)
+      }
+    }
+    
+    def growCommunity(troika: ComTroika): Community =
+      addPair(troika) match {
+        case (t,true) => growCommunity(t)
+        case ((_,_,com),_) => com.reverse
+      }
+    
+    // body!
+    val pq: UserPairQueue = Queue.Empty.enqueue(((u1,u2),0))
+    growCommunity( ( pq, Set(u1,u2), List[ComMember]((u1,(0,0),(0,0),0),(u2,(0,0),(0,0),0)) ) )
   }
 }
