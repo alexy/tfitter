@@ -1,5 +1,6 @@
 package com.tfitter.db.graph
 
+import sleepycat.persist.model._
 import util.Sorting.stableSort
 import System.err
 import db.types._
@@ -8,7 +9,6 @@ import com.tfitter.Serialized.loadRepliers
 
 import org.suffix.util.bdb.{BdbArgs,BdbFlags,BdbStore}
 
-import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey,Persistent}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
 import scala.collection.mutable.{Map=>UMap}
 
@@ -35,38 +35,35 @@ case class UserReps (
   s: UserID,
   rc: RepCount
   )
+
+@Persistent
+class EdgeBDB {
+  @KeyField(1) var s: JInt = null
+  @KeyField(2) var t: JInt = null
+  def this(_s: Int, _t: Int) = { this()
+    s = _s
+    t = _t
+  }
+}
    
 @Entity
 class RepPairBDB {
   // or can just shift two Ints into a Long
   @PrimaryKey
-  // var st: java.util.AbstractMap.SimpleImmutableEntry[java.lang.Integer,java.lang.Integer] = null
-  var st: JLong = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
-  var s: JInt = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
-  var t: JInt = null
+  var st: EdgeBDB = new EdgeBDB
   var reps: JInt = null
   var dirs: JInt = null
-  def this(_s: UserID, _t: UserID, _reps: TwitCount, _dirs: TwitCount) = { 
-    this()
-    // st = new java.util.AbstractMap.SimpleImmutableEntry(_s, _t)
-    st = _s << 32L | _t
-    s = _s
-    t = _t
+  def this(_s: UserID, _t: UserID, _reps: TwitCount, _dirs: TwitCount) = { this()
+    st = new EdgeBDB(_s, _t)
     reps = _reps
     dirs = _dirs
   }
-  def this(rp: RepPair) = {
-    this()
-    // st = new java.util.AbstractMap.SimpleImmutableEntry(rp.s, rp.t)
-    st = rp.s << 32L | rp.t
-    s = rp.s
-    t = rp.t
+  def this(rp: RepPair) = { this()
+    st = new EdgeBDB(rp.s,rp.t)
     reps = rp.reps
     dirs = rp.dirs
   }
-  def toRepPair: RepPair = RepPair(s.intValue,t.intValue,reps.intValue,dirs.intValue)
+  def toRepPair: RepPair = RepPair(st.s.intValue,st.t.intValue,reps.intValue,dirs.intValue)
 }
 
 @Entity
@@ -112,13 +109,7 @@ trait RepsBDB {
 
 class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
   val rpPrimaryIndex =
-    store.getPrimaryIndex(classOf[java.lang.Long], classOf[RepPairBDB])
-
-  val rpSecIndexFrom =
-      store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Integer], "s")
-
-  val rpSecIndexTo =
-      store.getSecondaryIndex(rpPrimaryIndex, classOf[java.lang.Integer], "t")
+    store.getPrimaryIndex(classOf[EdgeBDB], classOf[RepPairBDB])
       
   def saveMap(r: Repliers, showProgress: Boolean): Unit = {
     var edgeCount = 0
@@ -152,7 +143,9 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
   }
   
   def getReps(u: UserID): Option[RepCount] = {
-    val curIter = new CursorIterator(rpSecIndexFrom.subIndex(u).entities)
+    val curIter = new CursorIterator(rpPrimaryIndex.entities(
+      new EdgeBDB(u, 0), true,
+      new EdgeBDB(u, Math.MAX_INT), true))
     val rc: RepCount = UMap.empty
     
     for (ej <- curIter) {
@@ -281,14 +274,31 @@ class RepMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
     err.println
     reps
   }
+
+  var repMapCache: ReplierMap = UMap.empty
+  var repMapCacheHits: Long   = 0
+  var repMapCacheMisses: Long = 0
   
   def getReps(u: UserID): Option[RepCount] = {
-    val uj = urPrimaryIndex.get(u)
-    uj match {
-      case null => None
-      case u => Some(u.toUserReps.rc)
+    if (repMapCache contains u) {
+      repMapCacheHits += 1
+      Some(repMapCache(u))
+    }
+    else {
+      repMapCacheMisses += 1      
+      val uj = urPrimaryIndex.get(u)
+      uj match {
+        case null => None
+        case ur => val reps = ur.toUserReps.rc
+          repMapCache(u) = reps
+          Some(reps)
+      }
     }
   }
+
+  def repMapCacheStats: String =
+    "replier map hits: "+repMapCacheHits+", misses: "+repMapCacheMisses+
+            ", total: "+(repMapCacheHits+repMapCacheMisses)
 }
 
 
@@ -523,11 +533,15 @@ object PairsBDB extends optional.Application {
     println(udb.getReps(u2))
     
     import Communities._
-    List[UserPair]((29524566,12921202),
-    (25688017,14742479),(14742479,25688017),(30271870,26073346),
-    (26073346,30271870),(12921202,29524566),(29524566,12921202))
+    val c = new Communities(udb.getReps _)
+    // the pairs in a different order yield
+    // a different result set!
+    List[UserPair](
+    (25688017,14742479),(14742479,25688017),
+    (30271870,26073346),(26073346,30271870),
+    (12921202,29524566),(29524566,12921202))
     .foreach { up: UserPair =>
-      val com: Community = triangles(up,udb.getReps _,Some(100),None)
+      val com: Community = c.triangles(up,Some(100),None)
       println(com)
       println("-"*50)
     }
@@ -536,7 +550,6 @@ object PairsBDB extends optional.Application {
 
 object Communities {
   import scala.collection.immutable.Queue
-  
   type Gen = Int
   type Tie = Int
   type UserPair = (UserID,UserID)
@@ -547,16 +560,25 @@ object Communities {
   type ComMember = (UserID,UserPair,TiesPair,Gen)
   type Community = List[ComMember]
   type ComTroika = (UserPairQueue,UserSet,Community)
-  
-  def triangles(up: UserPair, getReps: UserID => Option[RepCount],
+  type FringeUser = (UserPair, TiesPair)
+  type Fringe = Set[FringeUser]
+}
+
+class Communities(getReps: UserID => Option[RepCount]) {
+  import scala.collection.immutable.Queue
+  import Communities._
+
+  def triangles(up: UserPair,
     maxTotal: Option[Int], maxGen: Option[Int]): Community = {
     val (u1,u2) = up  
       
-    def repairGreater(a: RePair,b: RePair) = a._1 > b._1
+    def firstGreater(a: RePair,b: RePair) = a._1 > b._1
   
     def common(a: List[RePair], b: Array[RePair], haveSet: UserSet): Option[UserTies] = {
       def aux(l: List[RePair]): Option[UserTies] = l match {
         case (s,(t1,u))::xs => if (haveSet contains s) aux(xs)
+        // We rely on Array a.find finding leftmost item here, 
+        // so it is the highest rank -- must confirm from Scala source!
         else b.find(_._1==s) match {
           case Some((_,(t2,_))) => Some((s,(t1,t2)))
           case _ => aux(xs)
@@ -584,7 +606,7 @@ object Communities {
     
       val u1a = u1reps.toList.sort(_._2._1 > _._2._1)
       val u2a = u2reps.toArray
-      stableSort(u2a,repairGreater _)
+      stableSort(u2a,firstGreater _)
     
       val c: Option[UserTies] = common(u1a, u2a, haveSet)
       // err.println(c)
@@ -596,7 +618,7 @@ object Communities {
           val cGen = parentGen + 1
           val newQueue = 
             deQueue enqueue (community map { case (y,_,_,gen) => 
-              ((y,x),gen min cGen) })
+              ((y,x),gen min cGen) }) // min or max?
           // println("new queue: "+newQueue)
           val keepGoing = maxTotal.isEmpty || haveSet.size + 1 < maxTotal.get
           ((newQueue,haveSet+x,(x,parents,ties,cGen)::community),keepGoing)
@@ -614,4 +636,14 @@ object Communities {
     val pq: UserPairQueue = Queue.Empty.enqueue(((u1,u2),0))
     growCommunity( ( pq, Set(u1,u2), List[ComMember]((u1,(0,0),(0,0),0),(u2,(0,0),(0,0),0)) ) )
   }
+
+  /*
+  def fringeUsers(com: Community): UserSet = {
+    val comSet: UserSet = com.toSet map (_._1)
+
+    var fringeUsers = (comSet map getReps) map keySet map (_ - comSet) reduceLeft (_++_)
+      
+    fringeUsers
+  }
+  */
 }
