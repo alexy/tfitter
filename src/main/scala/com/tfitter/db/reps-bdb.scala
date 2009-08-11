@@ -104,6 +104,7 @@ trait RepsBDB {
   def saveMap(r: Repliers, showProgress: Boolean): Unit
   def loadMap(showProgress: Boolean): ReplierMap
   def getReps(u: UserID): Option[RepCount]
+  def repMapCacheStats: String
 }
 
 
@@ -157,6 +158,8 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
     if (rc == UMap.empty) None
     else Some(rc)
   }
+
+  def repMapCacheStats: String = "cache not implemented for triples yet"
 }
 
 
@@ -387,101 +390,6 @@ object FetchUserRepsBDB extends optional.Application {
 }
 
 
-// this doesn't work -- we need a PersistentProxy
-// for Scala HashMap
-@Persistent
-class PerRepCount {
-  var rc: RepCount = UMap.empty
-  def set(_rc: RepCount) = rc = _rc
-  def get: RepCount = rc
-}
-
-@Entity
-class ScalaRepsBDB {
-  @PrimaryKey
-  var s: JInt = 0
-  var rc: PerRepCount = new PerRepCount
-  def this(_s: UserID, _rc: RepCount) = { this()
-    s = _s
-    rc.set(_rc)
-  }
-}
-
-class ScalaMapsBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) {
-  val urPrimaryIndex =
-// Caused by: java.lang.IllegalArgumentException: Wrong primary key class: int Correct class is: java.lang.Integer  
-    store.getPrimaryIndex(classOf[JInt], classOf[ScalaRepsBDB])
-      
-  def saveMap(r: Repliers, showProgress: Boolean): Unit = {
-    var userCount = 0
-    for ((s,rc) <- r.reps) {
-      val userReps = new ScalaRepsBDB(s,rc)
-// Caused by: java.lang.IllegalArgumentException: Class could not be loaded or is not persistent: scala.collection.mutable.HashMap
-      urPrimaryIndex.put(txn, userReps)
-      userCount += 1
-      if (showProgress && userCount % 100000 == 0) err.print('.')
-    }
-    err.println
-  }
-  
-  def loadMap(showProgress: Boolean): ReplierMap = { 
-    val curIter = new CursorIterator(urPrimaryIndex.entities)
-    var reps: ReplierMap = UMap.empty
-
-    var userCount = 0
-    for (ur <- curIter) {
-      reps(ur.s.intValue) = ur.rc.get
-      userCount += 1
-      if (showProgress && userCount % 100000 == 0) err.print('.')
-    }
-    err.println
-    reps
-  }
-}
-
-
-object StoreScalaRepsBDB extends optional.Application {
-  def main(
-    envName: Option[String],
-    storeName: Option[String],
-    cacheSize: Option[Double],
-    allowCreate: Option[Boolean],
-    readOnly: Option[Boolean],
-    transactional: Option[Boolean],
-    deferredWrite: Option[Boolean],
-    noSync: Option[Boolean],
-    showProgress: Option[Boolean],
-    args: Array[String]) = {
-      
-    val repSerName: String = args(0) // need it
-
-    val bdbEnvPath   = envName   getOrElse "ursc.bdb"// Config.bdbEnvPath
-    val bdbStoreName = storeName getOrElse "scamaps"// Config.bdbStoreName
-    val bdbCacheSize = cacheSize match {
-      case Some(x) => Some((x*1024*1024*1024).toLong)
-      case _ => None // Config.bdbCacheSize
-    }
-    val bdbFlags = BdbFlags(
-      allowCreate   getOrElse false,
-      readOnly      getOrElse false,
-      transactional getOrElse false,
-      deferredWrite getOrElse false,
-      noSync        getOrElse false
-    )
-    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
-
-    // make this a parameter:
-    val showingProgress = showProgress getOrElse true
-
-    val urscDb = new ScalaMapsBDB(bdbArgs)
-    
-    val reps: Repliers = loadRepliers(repSerName)
-    
-    err.print("Saving Repliers to Berkeley DB... ")
-    urscDb.saveMap(reps,showingProgress)
-    err.println("done")
-  }
-}
 
 
 object PairsBDB extends optional.Application {
@@ -543,6 +451,10 @@ object PairsBDB extends optional.Application {
     .foreach { up: UserPair =>
       val com: Community = c.triangles(up,Some(100),None)
       println(com)
+      println("Fringe:")
+      println(c.fringeUsers(com))
+      println("Cache Stats:")
+      println(udb.repMapCacheStats)
       println("-"*50)
     }
   }
@@ -552,10 +464,11 @@ object Communities {
   import scala.collection.immutable.Queue
   type Gen = Int
   type Tie = Int
+  type UserSet  = Set[UserID]
+  type UserList = List[UserID]
   type UserPair = (UserID,UserID)
   type TiesPair = (Tie,Tie)
   type UserPairQueue = Queue[(UserPair,Gen)]
-  type UserSet = Set[UserID]
   type UserTies = (UserID,TiesPair)
   type ComMember = (UserID,UserPair,TiesPair,Gen)
   type Community = List[ComMember]
@@ -637,13 +550,17 @@ class Communities(getReps: UserID => Option[RepCount]) {
     growCommunity( ( pq, Set(u1,u2), List[ComMember]((u1,(0,0),(0,0),0),(u2,(0,0),(0,0),0)) ) )
   }
 
-  /*
-  def fringeUsers(com: Community): UserSet = {
-    val comSet: UserSet = com.toSet map (_._1)
 
-    var fringeUsers = (comSet map getReps) map keySet map (_ - comSet) reduceLeft (_++_)
+  def fringeUsers(com: List[ComMember]): UserSet = {
+    // 2.7 has no list.toSet, mharrah suggest either:
+    // Set(list:_*) or Set()++list
+    val comSet: UserSet = scala.collection.immutable.Set(com:_*) map (_._1)
+
+    // TODO how can we employ flatMap to simplify the below in 2.7?
+    // in 2.8, we can use filterMap. nonEmpty, and whatnot...
+    var fringeUsers = (comSet map getReps) filter (!_.isEmpty) map (Set()++_.get.keySet) map (_ -- comSet) reduceLeft (_++_)
       
     fringeUsers
   }
-  */
+  
 }
