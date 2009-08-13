@@ -437,8 +437,8 @@ object PairsBDB extends optional.Application {
     
     val u2: UserID = 12921202 // myleswillsaveus
     
-    println(udb.getReps(u1))
-    println(udb.getReps(u2))
+    // println("repliers for "+u1+udb.getReps(u1))
+    // println("repliers for "+u2+udb.getReps(u2))
     
     import Communities._
     val c = new Communities(udb.getReps _)
@@ -450,12 +450,12 @@ object PairsBDB extends optional.Application {
     (12921202,29524566),(29524566,12921202))
     .foreach { up: UserPair =>
       val com: Community = c.triangles(up,Some(100),None)
-      println(com)
-      println("Fringe:")
-      println(c.fringeUsers(com))
-      println("Cache Stats:")
-      println(udb.repMapCacheStats)
-      println("-"*50)
+      println("# "+up+" community:")
+      println(c.showCommunity(com))
+      println("# "+up+" fringe:")
+      println(c.fringeUsers(com) mkString ",")
+      println("# cache stats: "+udb.repMapCacheStats)
+      println("#"+"-"*50)
     }
   }
 } 
@@ -551,7 +551,7 @@ class Communities(getReps: UserID => Option[RepCount]) {
   }
 
 
-  def fringeUsers(com: List[ComMember]): UserSet = {
+  def fringeUsers(com: Community): UserSet = {
     // 2.7 has no list.toSet, mharrah suggest either:
     // Set(list:_*) or Set()++list
     val comSet: UserSet = scala.collection.immutable.Set(com:_*) map (_._1)
@@ -562,5 +562,13 @@ class Communities(getReps: UserID => Option[RepCount]) {
       
     fringeUsers
   }
-  
+
+  def showCommunity(com: Community): String = {
+    val comSet: UserSet = scala.collection.immutable.Set(com:_*) map (_._1)
+
+    // fun implementing mkString ourselves:
+    // s.foldLeft (""){ case (x:String,i:Int) if !x.isEmpty => x+","+i; case (_,i) => i.toString }
+    // s.reduceLeft( (r:Any,i:Int) => r + "," + i ).toString
+    comSet mkString ","
+  }
 }
