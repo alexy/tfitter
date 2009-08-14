@@ -29,6 +29,7 @@ class TwitterCorpus(bdbArgs: BdbArgs) extends Corpus[TokenizedLM] {
     // get the total here as it's "remaining"!
     var totalTwits = 0
     for (t <- twitsToGo) {
+      err.println(totalTwits+": "+t.text)
       handler.handle(t.text.toCharArray,0,t.text.length)
       totalTwits += 1
     }
