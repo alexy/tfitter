@@ -96,6 +96,8 @@ case class AdjustRange (
 case class DBError(reason: String) extends Exception(reason)
 case class DBEncoding(override val reason: String) extends DBError(reason)
 case class DBDuplicate(override val reason: String) extends DBError(reason)
+abstract class TwIterator extends Iterator[Twit]
+
 
 trait TwitterDB {
 
@@ -264,6 +266,5 @@ trait TwitterDB {
   def allUserStatsStream: Stream[UserStats]
 
   // pardon the pun  
-  abstract class TwIterator extends Iterator[Twit]
-  def allTwits: TwIterator  
+  def allTwits: TwIterator
 }

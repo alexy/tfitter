@@ -41,6 +41,7 @@ dependencies:
   - { groupId: berkeleydb, artifactId: je, version: 3.3.82 }
   - { groupId: optional, artifactId: "optional_${scala.version}", version: 1.0 }
   - { groupId: org.apache.commons, artifactId: commons-compress, version: 1.1-SNAPSHOT }
+  - { groupId: com.lingpipe, artifactId: lingpipe, version: 3.8.2 }
 reporting:
   plugins:
     - { artifactId: maven-scala-plugin, groupId: org.scala-tools }
