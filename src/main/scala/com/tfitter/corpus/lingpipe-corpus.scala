@@ -1,13 +1,15 @@
 package com.tfitter.corpus
 
+import aliasi.util.ScoredObject
 import System.err
 import aliasi.tokenizer.{IndoEuropeanTokenizerFactory, TokenizerFactory}
 import com.aliasi.corpus.{TextHandler,Corpus}
 import com.aliasi.lm.TokenizedLM
 import db.{TwitterDB, TwitterBDB, TwIterator}
 
-import org.suffix.util.bdb.{BdbFlags, BdbArgs}
+import scala.collection.jcl.Conversions._
 
+import org.suffix.util.bdb.{BdbFlags, BdbArgs}
 class TwitterCorpus(bdbArgs: BdbArgs) extends Corpus[TokenizedLM] {
   def visitTest(handler: TextHandler): Unit = {}
 
@@ -20,18 +22,20 @@ class TwitterCorpus(bdbArgs: BdbArgs) extends Corpus[TokenizedLM] {
   def setTwitsProgress(m: Int): Unit = twitsProgress = Some(m)
   def unsetTwitsProgress: Unit = twitsProgress = None
 
-  def visitTrain(handler: TextHandler): Unit = {
+  override def visitTrain(lm: TokenizedLM): Unit = {
     val twits: TwIterator = tdb.allTwits
     val twitsToGo = maxTwits match {
       case Some(m) => twits.take(m)
       case _ => twits
     }
+    err.println("got twits "+twitsToGo.hasNext)
     // get the total here as it's "remaining"!
     var totalTwits = 0
     for (t <- twitsToGo) {
-      err.println(totalTwits+": "+t.text)
-      handler.handle(t.text.toCharArray,0,t.text.length)
+      // err.println(totalTwits+": "+t.text)
+      lm.handle(t.text.toCharArray,0,t.text.length)
       totalTwits += 1
+      if (!twitsProgress.isEmpty && totalTwits % twitsProgress.get == 0) err.print(".")
     }
     err.println("did "+totalTwits+" twits.")
   }
@@ -78,8 +82,13 @@ object Pipe extends optional.Application {
     val tf: TokenizerFactory = IndoEuropeanTokenizerFactory.INSTANCE
     val lm = new TokenizedLM(tf,gram)
 
-    twitCorpus.visitCorpus(lm)
+    twitCorpus.visitTrain(lm)
 
-    println(lm.frequentTermSet(1, 10))
+    val freqTerms: List[ScoredObject[Array[String]]] = lm.frequentTermSet(1, 10).toList
+
+    for (so <- freqTerms) {
+      println(so.score+": "+so.getObject.toList.mkString(","))
+    }
+
   }
 }
