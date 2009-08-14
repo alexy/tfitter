@@ -123,6 +123,11 @@
             <artifactId>commons-compress</artifactId>
             <version>1.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.lingpipe</groupId>
+            <artifactId>lingpipe</artifactId>
+            <version>3.8.2</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
