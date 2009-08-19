@@ -1,4 +1,4 @@
-groupId: org.suffix
+groupId: com.tfitter
 artifactId: "tfitter_${scala.version}"
 version: 0.5
 name: Tfitter
