@@ -267,4 +267,5 @@ trait TwitterDB {
 
   // pardon the pun  
   def allTwits: TwIterator
+  def userTwits(uid: UserID): TwIterator
 }

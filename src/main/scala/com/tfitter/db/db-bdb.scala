@@ -4,6 +4,7 @@ import org.suffix.util.bdb.{BdbArgs,BdbFlags,BdbStore}
 
 import System.err
 import com.sleepycat.persist.model.{Entity,PrimaryKey,SecondaryKey}
+import com.sleepycat.persist.{EntityCursor}
 import com.sleepycat.persist.model.Relationship.MANY_TO_ONE
 import org.joda.time.DateTime
 
@@ -309,17 +310,17 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
 
   // TODO lookup a general way to adapt a Java Iterator to Scala
 
-  class TwIteratorBDB extends TwIterator {
-    val cursor = twitPrimaryIndex.entities
+  class TwIteratorBDB(cursor: EntityCursor[TwitStoreBDB]) extends TwIterator {
     val javaIter = cursor.iterator
     // TODO a way to stick closing actions into our iterator,
     // are there any official or better ways?
-    def hasNext: Boolean = { val has = javaIter.hasNext
-      if (!has) cursor.close
+    def hasNext: Boolean = try { val has = javaIter.hasNext
+      if (!has) cursor.close  
       has
-    }
+    } catch { case _ => false }
     def next: Twit = javaIter.next.toTwit
   }
 
-  def allTwits: TwIterator = new TwIteratorBDB
+  def allTwits:  TwIterator = new TwIteratorBDB(twitPrimaryIndex.entities)
+  def userTwits(uid: UserID): TwIterator = new TwIteratorBDB(twitSecIndexUser.subIndex(uid).entities)
 }
