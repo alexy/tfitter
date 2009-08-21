@@ -314,10 +314,15 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
     val javaIter = cursor.iterator
     // TODO a way to stick closing actions into our iterator,
     // are there any official or better ways?
-    def hasNext: Boolean = try { val has = javaIter.hasNext
+    var has: Boolean = true
+    def hasNext: Boolean = 
+    // try
+    { 
+      if (!has) return has
+      has = javaIter.hasNext
       if (!has) cursor.close  
       has
-    } catch { case _ => false }
+    } // catch { case _ => false }
     def next: Twit = javaIter.next.toTwit
   }
 
