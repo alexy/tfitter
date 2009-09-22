@@ -6,3 +6,8 @@ tfitter.iml
 tfitter.ipr
 tfitter.iws
 bdb
+*.iml
+*.ipr
+*.iws
+*.bdb
+zhar

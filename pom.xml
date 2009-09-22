@@ -128,6 +128,11 @@
             <artifactId>lingpipe</artifactId>
             <version>3.8.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.scala-tools</groupId>
+            <artifactId>time</artifactId>
+            <version>${scala.version}-0.2-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
