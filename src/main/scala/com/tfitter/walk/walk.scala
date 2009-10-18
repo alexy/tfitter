@@ -23,7 +23,11 @@ object WalkTwits extends optional.Application {
 
     val bdbEnvPath   = envName getOrElse   "bdb"
     val bdbStoreName = storeName getOrElse "twitter"
-        
+    err.println("twitsProgress => "+twitsProgress)
+    err.println("maxTwits => "+maxTwits)
+    
+    System.exit(1)
+    
     val bdbCacheSize = cacheSize match {
       case Some(x) => Some((x*1024*1024*1024).toLong)
       case _ => None // Config.bdbCacheSize
@@ -45,7 +49,7 @@ object WalkTwits extends optional.Application {
     var twitCount = 0
     for (t <- tdb.allTwits /*.take(atMost.toInt)*/) {
       twitCount += 1
-      if (!twitsProgress.isEmpty && twitCount % twitsProgress.get == 0) err.print(".")
+      if (!twitsProgress.isEmpty && twitCount % twitsProgress.get == 0) err.println(lastTwitTime)
       if (lastTwitTime < t.time) lastTwitTime = t.time
     }
     println(lastTwitTime)

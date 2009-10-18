@@ -54,7 +54,6 @@ build:
     - { directory: src/main/resources, filtering: true }
   plugins:
     - artifactId: maven-scala-plugin
-      version: 2.11
       executions:
         - goals: [ compile, testCompile ]
       groupId: org.scala-tools
@@ -71,12 +70,10 @@ build:
       configuration:
         excludes: [ "**/drafts/*.scala" ]
     - artifactId: maven-yamlpom-plugin
-      version: 0.4.1
       executions:
         - goals: [ sync ]
       groupId: org.twdata.maven
     - artifactId: maven-assembly-plugin
-      version: 2.2-beta-4
       configuration:
         descriptorRefs: [ jar-with-dependencies ]
         archive:

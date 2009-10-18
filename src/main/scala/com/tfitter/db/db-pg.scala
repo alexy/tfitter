@@ -394,6 +394,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   // is there a more direct way to get the List instead of Stream via RichSQL?
   def allUserStatsList: List[UserStats] = allUserStatsStream.toList
 
+  // TODO: this is better managed by a join
   class TwIteratorPG extends TwIterator {
     val st: Stream[Twit] = selectAllTwitsSt <<! { r => val tid: TwitID = r
             val reply = { selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } firstOption }
@@ -410,4 +411,5 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   }
 
   def allTwits: TwIterator = new TwIteratorPG
+  def userTwits(uid: UserID): TwIterator = new TwIteratorPG // wrong -- just to compile!  TODO
 }

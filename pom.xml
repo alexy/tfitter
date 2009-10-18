@@ -157,7 +157,6 @@
         <plugins>
             <plugin>
                 <artifactId>maven-scala-plugin</artifactId>
-                <version>2.11</version>
                 <executions>
                     <execution>
                         <goals>
@@ -202,25 +201,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <configuration>
                     <excludes>
-                        <exclude>**/drafts/*.scala</exclude>
+                        <exclude>**/draft/*.*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-yamlpom-plugin</artifactId>
-                <version>0.4.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>sync</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <groupId>org.twdata.maven</groupId>
-            </plugin>
-            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-4</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

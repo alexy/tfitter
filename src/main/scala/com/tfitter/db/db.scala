@@ -47,6 +47,12 @@ case class ReplyTwit (
   replyUser: UserID
   )
   
+  
+sealed abstract class TwitRole
+case class TwitInit(u: UserID)   extends TwitRole
+case class TwitReply(u: UserID, t: TwitID)  extends TwitRole
+case class TwitMumble() extends TwitRole
+
 case class Twit (
   tid: TwitID,
   uid: UserID,
@@ -54,9 +60,34 @@ case class Twit (
   text: String,
   reply: Option[ReplyTwit]
   ) extends Validated {
+
   def isValid = reply match {
     case Some(r) => tid == r.tid
     case _ => true
+  }
+
+  def isInit  = reply match {
+  	case Some(r) if r.replyTwit.isEmpty => true
+  	case _ => false
+  }
+  def isReply = !reply.isEmpty 
+
+  /*
+  def role: TwitRole = {
+  	if      (isInit)  TwitInit()
+  	else if (isReply) TwitReply()
+  	else              TwitMumble()
+  }
+  */
+  def role: TwitRole = {
+  	reply match {
+	  	case Some(r) => 
+	  		r.replyTwit match {
+	  			case Some(tid) => TwitReply(r.replyUser,tid)
+	  			case _ => TwitInit(r.replyUser)
+	  		}
+	  	case _ => TwitMumble()
+  	}
   }
 }
 
