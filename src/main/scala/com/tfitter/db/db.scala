@@ -135,7 +135,7 @@ trait TwitterDB {
   // could replace object by a class with parameter UserID
   // and create short-lived objects per user
 
-  // NBS originally had (uid: UserID) but the same after
+  // NB originally had (uid: UserID) but the same after
   // class UserPG(uid: UserID) caused the new erreur,
   //error: using named or default arguments in a super constructor call is not allowed
   // and the caret pointing to UserPG...

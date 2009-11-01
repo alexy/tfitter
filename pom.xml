@@ -15,19 +15,27 @@
     </properties>
     <profiles>
         <profile>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <id>Scala-2.7.5</id>
+            <id>Scala-2.7</id>
             <properties>
                 <scala.version>2.7.5</scala.version>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <file>
+                    <exists>Scala-2.7.5</exists>
+                </file>
+            </activation>
         </profile>
         <profile>
             <id>Scala-2.8.0-SNAPSHOT</id>
             <properties>
                 <scala.version>2.8.0-SNAPSHOT</scala.version>
             </properties>
+            <activation>
+                <file>
+                    <exists>Scala-2.8.0-SNAPSHOT</exists>
+                </file>
+            </activation>
         </profile>
     </profiles>
     <repositories>
@@ -55,11 +63,6 @@
             <id>snapshots.scala-tools.org</id>
             <name>Scala-Tools Maven2 Snapshot Repository</name>
             <url>http://scala-tools.org/repo-snapshots</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>twdata-m2-repository</id>
-            <name>twdata.org Maven 2 Repository</name>
-            <url>http://twdata-m2-repository.googlecode.com/svn/</url>
         </pluginRepository>
     </pluginRepositories>
     <dependencies>
@@ -178,7 +181,7 @@
                         <jvmArg>-Dfile.encoding=UTF-8</jvmArg>
                     </jvmArgs>
                     <excludes>
-                        <exclude>**/drafts/*.*</exclude>
+                        <exclude>**/draft/*.*</exclude>
                     </excludes>
                     <launchers>
                         <launcher>
