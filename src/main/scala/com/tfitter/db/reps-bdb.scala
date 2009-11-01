@@ -1,9 +1,9 @@
 package com.tfitter.db.graph
 
-import sleepycat.persist.model._
+import com.sleepycat.persist.model._
 import util.Sorting.stableSort
 import System.err
-import db.types._
+import com.tfitter.db.types._
 import com.tfitter.Repliers
 import com.tfitter.Serialized.loadRepliers
 
@@ -517,7 +517,7 @@ class Communities(getReps: UserID => Option[RepCount]) {
       val u2reps: RepCount = getReps(u2) getOrElse    { return ((deQueue,haveSet,community),true) }
       // println(u2reps)
     
-      val u1a = u1reps.toList.sort(_._2._1 > _._2._1)
+      val u1a = u1reps.toList.sortWith(_._2._1 > _._2._1)
       val u2a = u2reps.toArray
       stableSort(u2a,firstGreater _)
     

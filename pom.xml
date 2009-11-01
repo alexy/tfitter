@@ -20,7 +20,6 @@
                 <scala.version>2.7.5</scala.version>
             </properties>
             <activation>
-                <activeByDefault>true</activeByDefault>
                 <file>
                     <exists>Scala-2.7.5</exists>
                 </file>
@@ -32,6 +31,7 @@
                 <scala.version>2.8.0-SNAPSHOT</scala.version>
             </properties>
             <activation>
+                <activeByDefault>true</activeByDefault>
                 <file>
                     <exists>Scala-2.8.0-SNAPSHOT</exists>
                 </file>
@@ -87,9 +87,9 @@
             <version>2.4</version>
         </dependency>
         <dependency>
-            <groupId>com.twitter</groupId>
-            <artifactId>scala-json_${scala.version}</artifactId>
-            <version>1.0</version>
+            <groupId>org.postgresql</groupId>
+            <artifactId>jdbc4</artifactId>
+            <version>8.3-604</version>
         </dependency>
         <dependency>
             <groupId>org.suffix.sql</groupId>

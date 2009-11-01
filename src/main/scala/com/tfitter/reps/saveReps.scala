@@ -46,7 +46,7 @@ class Repliers {
       case (uid,repcount) => repcount.toList map {
             case (ruid,(n12,t12)) => (uid,ruid,n12,t12) }
       }
-    List.flatten(ll)
+    ll.flatten
   }
 
   def toPairs2 = toPairs1 map { case (u1,u2,n12,t12) =>
@@ -58,7 +58,8 @@ class Repliers {
     (u1,u2,n12,n21,t12,t21,score)
   }
 
-  def topPairs = toPairs2 sort (_._7 > _._7)
+  // TODO should we sort list via array?
+  def topPairs = toPairs2 sortWith (_._7 > _._7)
 
   def showTopPairs(n: Int) = (topPairs take n) foreach { e =>
     println("%d %d %d %d %d %d %d" format (e._1, e._2, e._3, e._4, e._5, e._6, e._7))

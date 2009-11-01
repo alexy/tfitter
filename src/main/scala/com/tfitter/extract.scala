@@ -40,7 +40,7 @@ object Status {
       // alternatively, 
       // val bread = new BufferedReader(new InputStreamReader(inStream, "UTF-8"))
       // http://viewfromthefringe.blogspot.com/2007/10/making-bufferedreader-iterable.html
-      val lines = source.getLines.zipWithIndex
+      val lines = source.getLines().zipWithIndex
       
       var countDown = numCallers
       

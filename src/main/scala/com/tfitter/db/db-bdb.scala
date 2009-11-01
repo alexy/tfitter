@@ -75,9 +75,11 @@ class UserStatsBDB {
 class ReplyTwitBDB {
   @PrimaryKey
   var tid: java.lang.Long = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
+
+  @SecondaryKey (relate=MANY_TO_ONE)
   var replyTwit: java.lang.Long = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
+  
+  @SecondaryKey(relate=MANY_TO_ONE)
   var replyUser: java.lang.Integer = null
 
   def this(
@@ -113,7 +115,7 @@ class ReplyTwitBDB {
 class TwitStoreBDB {
   @PrimaryKey
   var tid: java.lang.Long = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
+  @SecondaryKey(relate=MANY_TO_ONE)
   var uid: java.lang.Integer = null
   // in order to add this secondary index,
   // we need to evolve the class in BDB parlance
@@ -121,9 +123,9 @@ class TwitStoreBDB {
   // @SecondaryKey{val relate=MANY_TO_ONE}
   var time: java.util.Date = null // DateTime not persistent
   var text: String = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
+  @SecondaryKey(relate=MANY_TO_ONE)
   var replyTwit: java.lang.Long = null
-  @SecondaryKey{val relate=MANY_TO_ONE}
+  @SecondaryKey(relate=MANY_TO_ONE)
   var replyUser: java.lang.Integer = null
 
   def this(

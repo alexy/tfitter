@@ -1,15 +1,15 @@
 package com.tfitter.corpus
 
-import aliasi.tokenizer._
+import com.aliasi.tokenizer._
 import java.util.regex.Pattern
 import com.aliasi.util.ScoredObject
 import System.err
 import com.aliasi.corpus.{TextHandler,Corpus}
 import com.aliasi.lm.TokenizedLM
-import db.{TwitterDB, TwitterBDB, TwIterator}
-
+import com.tfitter.db.{TwitterDB, TwitterBDB, TwIterator}
+import com.tfitter.db._
 // java.util.SortedSet.toList
-import scala.collection.jcl.Conversions._
+// import scala.collection.jcl.Conversions._ // 2.7 only
 
 case class NGramCount (
   nGram: Int,
@@ -129,9 +129,13 @@ object Pipe extends optional.Application {
 }
 
 object LM {
+  import collection.JavaConversions.JSetWrapper
+  
   def showTopNGrams(lm: TokenizedLM, nGramCount: NGramCount) = {
     val NGramCount(nGram,count) = nGramCount
-    val freqTerms: List[ScoredObject[Array[String]]] = lm.frequentTermSet(nGram, count).toList
+
+    // TODO replace toList with Java=>Scala iterator
+    val freqTerms = JSetWrapper(lm.frequentTermSet(nGram, count))
 
     for (so <- freqTerms) {
       println(so.score+": "+so.getObject.toList.mkString(","))

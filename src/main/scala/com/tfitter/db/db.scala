@@ -124,9 +124,10 @@ case class AdjustRange (
   total: TwitCount
 )
 
-case class DBError(reason: String) extends Exception(reason)
-case class DBEncoding(override val reason: String) extends DBError(reason)
-case class DBDuplicate(override val reason: String) extends DBError(reason)
+class DBErrorBase(val reason: String) extends Exception(reason)
+case class DBError(override val reason: String) extends DBErrorBase(reason)
+case class DBEncoding(override val reason: String) extends DBErrorBase(reason)
+case class DBDuplicate(override val reason: String) extends DBErrorBase(reason)
 abstract class TwIterator extends Iterator[Twit]
 
 

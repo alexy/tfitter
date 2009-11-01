@@ -2,6 +2,7 @@ package com.tfitter.db
 
 import System.err
 import org.joda.time.DateTime
+import org.postgresql.util.PSQLException
 
 case class JdbcArgs(
         url: String,
@@ -38,7 +39,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   conn.setAutoCommit(false)
 
   def commaSeparated(s: String, n: Int): String = 
-    /*List.fill(n)(s) */ List.make(n,s) mkString "," // 2.8/7
+    List.fill(n)(s)  mkString "," // 2.7: List.make(n,s)
     
   def insertFmt(n: Int): String  = "insert into %s ("+commaSeparated(
     "%s",n)+") values ("+commaSeparated("?",n)+")"
@@ -123,7 +124,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       us.numReplyTwits << us.numReplyUsers << us.flags <<!
    
     def fetchStats: Option[UserStats] = {
-      selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) } firstOption 
+      selectRangeFullSt << uid <<! { r => UserStats(uid,r,r,r,r,r,r,r,r,r,r) } headOption 
     }
 
 
@@ -262,7 +263,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
       try {
         insertTwitSt << tid << t.uid << t.time << t.text <<!
       } catch {
-          case e: org.postgresql.util.PSQLException =>
+          case e: PSQLException =>
             // if (e.getMessge.startsWith ...) can be a guard, too!
             if (e.getMessage.startsWith("ERROR: invalid byte sequence for encoding \"UTF8\":"))
               throw DBEncoding("CANNOT PUT TWIT PGSQL BAD UTF8 "+e+" tid "+tid)
@@ -286,11 +287,11 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
     }
 
     def getCore: Option[Twit] = {
-      selectTwitSt << tid <<! { rs => Twit(tid,rs,rs,rs,None) } firstOption
+      selectTwitSt << tid <<! { rs => Twit(tid,rs,rs,rs,None) } headOption
     }
 
     def getReply: Option[ReplyTwit] = 
-      selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } firstOption
+      selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } headOption
       
     def getFull: Option[Twit] = {
       val ot = getCore
@@ -397,7 +398,7 @@ class TwitterPG(jdbcArgs: JdbcArgs) extends TwitterDB {
   // TODO: this is better managed by a join
   class TwIteratorPG extends TwIterator {
     val st: Stream[Twit] = selectAllTwitsSt <<! { r => val tid: TwitID = r
-            val reply = { selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } firstOption }
+            val reply = { selectReplySt << tid <<! { rs => ReplyTwit(tid,rs,rs) } headOption }
             Twit(tid,r,r,r,reply) }
     def hasNext = !st.isEmpty
     def next = st.head

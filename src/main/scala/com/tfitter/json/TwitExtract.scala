@@ -13,9 +13,9 @@ import org.apache.commons.lang.StringEscapeUtils.unescapeHtml
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
-import db.{User,Twit,ReplyTwit,UserTwit}
-import db.types._
-
+import com.tfitter.db.{User,Twit,ReplyTwit,UserTwit}
+import com.tfitter.db.types._
+import com.tfitter.BadStatus
 
 object TwitExtract {
   val factory: JsonFactory = new JsonFactory
