@@ -125,22 +125,18 @@ class RepliersBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with RepsBDB {
   
   def loadMap(showProgress: Boolean): ReplierMap = { 
     val curIter = new CursorIterator(rpPrimaryIndex.entities)
-    var reps: FixedRepliers = Map.empty
+    var reps: ReplierMap = UMap.empty
 
     var edgeCount = 0
     for (ej <- curIter) {
       val e: RepPair = ej.toRepPair
       if (reps.contains(e.s)) reps(e.s)(e.t) = (e.reps,e.dirs)
-      // = Map(x->y) is harder to do with UMap,
-      // hence FixedRepliers -- and immutable at that!
-      // alas, we have to cast back to mutable ReplierMap
-      // to fit the trait RepsBDB which also fits RepMaps
-      else reps(e.s) = Map(e.t -> (e.reps,e.dirs))
+      else reps(e.s) = UMap(e.t -> (e.reps,e.dirs))
       edgeCount += 1
       if (showProgress && edgeCount % 100000 == 0) err.print('.')
     }
     err.println
-    reps.asInstanceOf[ReplierMap]
+    reps
   }
   
   def getReps(u: UserID): Option[RepCount] = {
