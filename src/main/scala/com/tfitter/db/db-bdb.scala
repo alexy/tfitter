@@ -204,15 +204,6 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
   val twitSecIndexReplyUser =
       store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "replyUser")
 
-  val replyPrimaryIndex =
-      store.getPrimaryIndex(classOf[java.lang.Long], classOf[ReplyTwitBDB])
-
-  val replySecIndexTwit =
-      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Long], "replyTwit")
-      
-  val replySecIndexUser =
-      store.getSecondaryIndex(twitPrimaryIndex, classOf[java.lang.Integer], "replyUser")
-  
 
   case class UserBDB(uid: UserID) extends UserDB(uid: UserID) {
 
@@ -236,34 +227,37 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
     def storeRangeLast:  Unit = store
   }
   
-  
+  // TODO implement simple caching of twits, when needed
   case class TwitBDB(tid: TwitID) extends TwitDB(tid: TwitID) {
+    // TODO will the initializer be invoked even when
+    // the first usage is on the RHS?
+    // lazy var twit: Twit = get
+    var twit: Option[Twit] = None
     // or use: contains(txn, key, lockMode)
     def exists: Boolean = twitPrimaryIndex.contains(tid)
-    def isReply: Boolean =replyPrimaryIndex.contains(tid)
+    // def isReply: Boolean =replyPrimaryIndex.contains(tid)
 
     def put(t: Twit): Unit = {
+      // TODO do we need to cache while bulk-loading?
+      twit = Some(t)
       twitPrimaryIndex.put(txn, new TwitStoreBDB(t))
-      t.reply match {
-        case Some(r) => replyPrimaryIndex.put(txn, new ReplyTwitBDB(r))
-        case _ =>
-      }
     }
     
-    def getCore: Option[Twit] = { 
-      twitPrimaryIndex.get(tid) match {
-        case null => None
-        case t => Some(t.toTwit)
-      }
+    def get: Option[Twit] = {
+      twit =
+        twitPrimaryIndex.get(tid) match {
+          case null => None
+          case t => Some(t.toTwit)
+        }
+      twit
     }
 
-    def getFull: Option[Twit] = getCore
-    
-    def getReply: Option[ReplyTwit] =
-      replyPrimaryIndex.get(tid) match {
-        case null => None
-        case r => Some(r.toReplyTwit)
-      }
+    def isReply: Boolean = {
+       twit match {
+         case Some(t) => t.isReply
+         case _ => get; twit.get.isReply
+       }
+    }
   }
   
   def insertUserTwit(ut: UserTwit): Unit = {
@@ -298,8 +292,6 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
     printAll(userPrimaryIndex.entities)
     println("--- Iterate Twits by primary key ---")
     printAll(twitPrimaryIndex.entities())
-    println("--- Iterate Replies by primary key ---")
-    printAll(replyPrimaryIndex.entities)
     // println("--- Iterate by secondary key ---")
     // printAll(secIndex.entities())
   }

@@ -14,7 +14,8 @@ object Main {
   //   val tweets = auth.getUserTimeline(twitterUser)
   //   for (t <- tweets) println(t)
   // }
-  
+
+/* TODO separate out Pg test
   def doPGtest {
     val dbDriver = Class.forName("org.postgresql.Driver")
 
@@ -30,7 +31,7 @@ object Main {
     tdb.testRange
     tdb.testTwit
   }
-  
+*/  
 
   def showBdb {
     val bdbFlags = BdbFlags(

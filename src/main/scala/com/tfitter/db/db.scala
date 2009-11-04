@@ -250,9 +250,7 @@ trait TwitterDB {
     def isReply: Boolean
 
     def put(t: Twit): Unit // can raise Duplicate
-    def getCore: Option[Twit]
-    def getFull: Option[Twit]
-    def getReply: Option[ReplyTwit]
+    def get: Option[Twit]
   }
 
   case class SubParams (
