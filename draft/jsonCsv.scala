@@ -3,6 +3,7 @@ package com.tfitter
 import System.err
 
 import db.{UserTwit,DBError}
+import db.{JdbcArgs,TwitterPG} // for PostgreSQL backend
 import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 import db.TwitterBDB // for Berkeley DB backend
 import json.TwitExtract
@@ -39,7 +40,7 @@ object Status {
       // alternatively, 
       // val bread = new BufferedReader(new InputStreamReader(inStream, "UTF-8"))
       // http://viewfromthefringe.blogspot.com/2007/10/making-bufferedreader-iterable.html
-      val lines = source.getLines().zipWithIndex
+      val lines = source.getLines.zipWithIndex
       
       var countDown = numCallers
       
@@ -150,6 +151,43 @@ object Status {
     }
   }
 
+  class PGInserter(override val id: Int, jdbcArgs: JdbcArgs) extends Inserter(id) {
+    val tdb = new TwitterPG(jdbcArgs)
+    def act() = {
+      err.println("Inserter "+id+" started, object "+self+",\n"+
+              "  talking to parser "+extractor.id + " ["+extractor+"]")
+      extractor ! self
+      loop {
+        react {
+          case ut @ UserTwit(_,_) => { /* ut @ UserTwit(user,twit)
+             print(user.name+" "+twit.time+": "+twit.text+
+              ", tid="+twit.tid+", uid="+user.uid)
+             twit.reply match {
+               case Some(r) => println(", reply_twit="+r.replyTwit +
+               ", reply_user="+r.replyUser)
+               case _ => ()
+             }
+            println
+            */
+            try {
+              // val t = tdb.TwitPG(twit.tid)
+              // t put twit
+              tdb.insertUserTwit(ut)
+            } catch {
+              case DBError(msg) => err.println("DB ERROR: "+msg)
+            }
+
+            extractor ! self
+          }
+          case EndOfInput => {
+            err.println("Inserter "+id+" exiting.")
+            exit()
+          }
+          case msg => err.println("Inserter "+id+" unhandled message:"+msg)
+        }
+      }
+    }
+  }
 
   class BdbInserter(override val id: Int, bdbArgs: BdbArgs) extends Inserter(id) {
     val tdb = new TwitterBDB(bdbArgs)
