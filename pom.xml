@@ -49,7 +49,7 @@
             <name>Scala-Tools Maven2 Snapshot Repository</name>
             <url>http://scala-tools.org/repo-snapshots</url>
             <snapshots>
-                <updatePolicy>never</updatePolicy>
+                <!--updatePolicy>never</updatePolicy-->
             </snapshots>
         </repository>
     </repositories>
