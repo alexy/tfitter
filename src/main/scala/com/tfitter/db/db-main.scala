@@ -79,7 +79,6 @@ object Db {
     readLines.start
     inserters foreach (_.start)
     parsers foreach (_.start)
-    exit
   }
 }
 
