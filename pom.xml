@@ -159,6 +159,7 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <executions>
                     <execution>
@@ -168,7 +169,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <groupId>org.scala-tools</groupId>
                 <configuration>
                     <args>
                         <arg>-deprecation</arg>

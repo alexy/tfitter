@@ -53,6 +53,8 @@ object Status {
                 a ! EndOfInput
                 countDown -= 1
                 if (countDown == 0) {
+                  source.close
+                  inStream.close
                   err.println("ReadLines exiting")
                   exit()
                 }
