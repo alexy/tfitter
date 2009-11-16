@@ -53,7 +53,8 @@ object Db {
       args.deferredWrite getOrElse false,
       args.noSync        getOrElse false
     )
-    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize)
+    val bdbVerbose = args.bdbVerbose getOrElse false
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize,bdbVerbose)
 
     // make this a parameter:
     val showingProgress = true
@@ -93,7 +94,8 @@ case class BdbInserterArgs (
   readOnly: Option[Boolean],
   transactional: Option[Boolean],
   deferredWrite: Option[Boolean],
-  noSync: Option[Boolean]
+  noSync: Option[Boolean],
+  bdbVerbose: Option[Boolean]
   ) {
     override def toString: String = 
     "fileName:"+fileName+
@@ -105,7 +107,8 @@ case class BdbInserterArgs (
     ", readOnly:"+readOnly+
     ", transactional:"+transactional+
     ", deferredWrite:"+deferredWrite+
-    ", noSync:"+noSync
+    ", noSync:"+noSync+
+    ", bdbVerbose:"+bdbVerbose
   }
 
 
@@ -121,7 +124,8 @@ object MainInsertBDB extends optional.Application {
     transactional: Option[Boolean],
     deferredWrite: Option[Boolean],
     noSync: Option[Boolean],
-    justPrint: Option[Boolean]    
+    justPrint: Option[Boolean],
+    bdbVerbose: Option[Boolean]   
     ) = {
     val args = BdbInserterArgs(
       fileName,
@@ -133,7 +137,8 @@ object MainInsertBDB extends optional.Application {
       readOnly,
       transactional,
       deferredWrite,
-      noSync
+      noSync,
+      bdbVerbose
       )
     if (justPrint getOrElse false) {
       err.println("Printing Twits to Screen:")
