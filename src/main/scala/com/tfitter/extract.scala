@@ -157,8 +157,9 @@ object Status {
 
 
   class BdbInserter(override val id: Int, bdbArgs: BdbArgs) extends Inserter(id) {
+    // 
+    val tdb = new TwitterBDB(bdbArgs)
     def act() = {
-      val tdb = new TwitterBDB(bdbArgs)
       err.println("Inserter "+id+" started, object "+self+",\n"+
               "  talking to parser "+extractor.id + " ["+extractor+"]")
       extractor ! self
