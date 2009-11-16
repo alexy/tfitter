@@ -157,7 +157,7 @@ object Status {
 
 
   class BdbInserter(override val id: Int, bdbArgs: BdbArgs) extends Inserter(id) {
-    // 
+    // apparently there's no difference whether this is inside or oustide act?
     val tdb = new TwitterBDB(bdbArgs)
     def act() = {
       err.println("Inserter "+id+" started, object "+self+",\n"+
