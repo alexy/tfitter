@@ -120,7 +120,8 @@ object MainInsertBDB extends optional.Application {
     readOnly: Option[Boolean],
     transactional: Option[Boolean],
     deferredWrite: Option[Boolean],
-    noSync: Option[Boolean]    
+    noSync: Option[Boolean],
+    justPrint: Option[Boolean]    
     ) = {
     val args = BdbInserterArgs(
       fileName,
@@ -134,7 +135,12 @@ object MainInsertBDB extends optional.Application {
       deferredWrite,
       noSync
       )
-    err.println("BDB Inserter Args:"+args)
-    Db.inserterBDB(args)
+    if (justPrint getOrElse false) {
+      err.println("Printing Twits to Screen:")
+      Db.printer(Array(fileName))      
+    } else {
+      err.println("BDB Inserter Args:"+args)
+      Db.inserterBDB(args)
+    }
   }
 }
