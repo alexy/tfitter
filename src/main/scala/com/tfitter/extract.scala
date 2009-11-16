@@ -55,8 +55,8 @@ object Status {
                 if (countDown == 0) {
                   source.close
                   inStream.close
-                  err.println("ReadLines exiting")
-                  exit()
+                  err.println("ReadLines exiting.")
+                  exit
                 }
               } else {
                 try {
@@ -79,7 +79,7 @@ object Status {
           case msg => err.println("ReadLines unhandled message:"+msg)
         }
       }
-     if (progress) err.println; err.println("ReadLines ended.")
+     /* if (progress) */ err.println; err.println("ReadLines ended.")
     }
   }  
   
@@ -117,6 +117,7 @@ object Status {
           // case msg => err.println("Parser "+id+" unhandled message:"+msg)
           }
         }
+        err.println("Parser "+id+" ended.")
       }
     }
 
@@ -149,6 +150,7 @@ object Status {
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
         }
       }
+      err.println("Inserter "+id+" ended.")
     }
   }
 
