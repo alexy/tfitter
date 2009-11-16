@@ -55,7 +55,7 @@ object Status {
                 if (countDown == 0) {
                   source.close
                   inStream.close
-                  err.println("ReadLines exiting.")
+                  err.println("ReadLines exiting, having "+mailboxSize+" messages left.")
                   // Runtime.getRuntime.addShutdownHook(exit)
                   exit
                 }
@@ -109,7 +109,7 @@ object Status {
             }
           case EndOfInput => { 
             inserter ! EndOfInput
-            err.println("Parser "+id+" exiting.")
+            err.println("Parser "+id+" exiting, having "+mailboxSize+" messages left.")
             exit
           }
           // inserter's message expected nested above
@@ -145,7 +145,7 @@ object Status {
             extractor ! self
           }
           case EndOfInput => {
-            err.println("Inserter "+id+" exiting.")
+            err.println("Inserter "+id+" exiting, having "+mailboxSize+" messages left.")
             exit
           }
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
@@ -177,7 +177,7 @@ object Status {
           case EndOfInput => {
             err.println("Inserter "+id+" flushing to disk...")
             tdb.close
-            err.println("Inserter "+id+" exiting.")
+            err.println("Inserter "+id+" exiting, having "+mailboxSize+" messages left.")
             exit
           }
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
