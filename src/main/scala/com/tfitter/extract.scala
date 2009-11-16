@@ -109,7 +109,8 @@ object Status {
           case EndOfInput => { 
             inserter ! EndOfInput
             err.println("Parser "+id+" exiting.")
-            exit
+            Runtime.getRuntime.addShutdownHook(exit)
+            // exit
           }
           // inserter's message expected nested above
           // may be in queue already, not handled at this top level,
@@ -145,7 +146,8 @@ object Status {
           }
           case EndOfInput => {
             err.println("Inserter "+id+" exiting.")
-            exit
+            Runtime.getRuntime.addShutdownHook(exit)
+            // exit
           }
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
         }
@@ -176,7 +178,8 @@ object Status {
             err.println("Inserter "+id+" flushing to disk...")
             tdb.close
             err.println("Inserter "+id+" exiting.")
-            exit
+            Runtime.getRuntime.addShutdownHook(exit)
+            // exit
           }
           case msg => err.println("Inserter "+id+" unhandled message:"+msg)
         }
