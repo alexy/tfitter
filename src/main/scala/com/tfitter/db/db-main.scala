@@ -1,6 +1,7 @@
 package com.tfitter
 
 import com.tfitter.Status._
+import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 
 import System.err
 import java.io.PrintStream
@@ -35,11 +36,7 @@ object Db {
   }
 
 
-
-  def inserterBDB(args: BdbInserterArgs) {
-    import org.suffix.util.bdb.{BdbArgs,BdbFlags}
-
-    val numThreads = args.numThreads getOrElse 1 // or Config.numCores
+  def theBdbArgs(args: BdbInserterArgs): BdbArgs = {
     val bdbEnvPath = args.envName getOrElse Config.bdbEnvPath
     val bdbStoreName = args.storeName getOrElse Config.bdbStoreName
     val bdbCacheSize = args.cacheSize match {
@@ -54,7 +51,15 @@ object Db {
       args.noSync        getOrElse false
     )
     val bdbVerbose = args.bdbVerbose getOrElse false
-    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize,bdbVerbose)
+    val bdbArgs = BdbArgs(bdbEnvPath,bdbStoreName,bdbFlags,bdbCacheSize,bdbVerbose)    
+    bdbArgs
+  }
+
+  def inserterBDB(args: BdbInserterArgs) {
+    import org.suffix.util.bdb.{BdbArgs,BdbFlags}
+
+    val numThreads = args.numThreads getOrElse 1 // or Config.numCores
+    val bdbArgs = theBdbArgs(args)
 
     // make this a parameter:
     val showingProgress = true
@@ -124,9 +129,12 @@ object MainInsertBDB extends optional.Application {
     transactional: Option[Boolean],
     deferredWrite: Option[Boolean],
     noSync: Option[Boolean],
+    progress: Option[Long],
     justPrint: Option[Boolean],
-    bdbVerbose: Option[Boolean]   
+    bdbVerbose: Option[Boolean],
+    actors: Option[Boolean]   
     ) = {
+      
     val args = BdbInserterArgs(
       fileName,
       envName,
@@ -140,12 +148,28 @@ object MainInsertBDB extends optional.Application {
       noSync,
       bdbVerbose
       )
-    if (justPrint getOrElse false) {
-      err.println("Printing Twits to Screen:")
-      Db.printer(Array(fileName))      
-    } else {
-      err.println("BDB Inserter Args:"+args)
-      Db.inserterBDB(args)
+      
+    val progress_ : Option[Long] = Some(progress getOrElse 10000)
+    val actors_ = actors getOrElse false
+    val justPrint_ = justPrint getOrElse false
+    
+    if (justPrint_) err.println("Printing Twits to Screen:")
+    else err.println("BDB Inserter Args:"+args)
+    
+    if (actors_) {
+      err.println("using actors")
+      if (justPrint_) {
+        Db.printer(Array(fileName))      
+      } else {    
+        Db.inserterBDB(args)
+      }
+    } else { // single thread
+      err.println("using actorless loader")
+      val bdbArgs = Db.theBdbArgs(args)
+
+      val loader = if (justPrint_) new PrintStatuses else new BdbInsertStatuses(bdbArgs)      
+      
+      loader.load(fileName,progress_)
     }
   }
 }
