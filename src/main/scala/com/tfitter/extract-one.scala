@@ -40,7 +40,7 @@ abstract class LoadStatuses {
                     }
                 } catch {
                   // TODO Now, for delete statuses, we must return None from JSON
-                  case BadStatus(reason) => err.println("*** BAD STATUS CAUGHT:"+reason+" \nline:"+line)
+                  case BadStatus(reason) => // err.println("*** BAD STATUS CAUGHT:"+reason+" \nline:"+line)
                 }
               case _ => // next
           }
