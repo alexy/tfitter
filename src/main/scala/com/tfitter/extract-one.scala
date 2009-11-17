@@ -45,7 +45,9 @@ abstract class LoadStatuses {
               case _ => // next
           }
       }
-  }  
+  }
+  
+  def finish: Unit = {} 
 }
 
 class BdbInsertStatuses(bdbArgs: BdbArgs) extends LoadStatuses {
@@ -60,7 +62,9 @@ class BdbInsertStatuses(bdbArgs: BdbArgs) extends LoadStatuses {
       }
   }
 
-  tdb.close
+  override def finish: Unit = {
+    tdb.close
+  }
 }
 
 

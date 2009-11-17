@@ -170,6 +170,7 @@ object MainInsertBDB extends optional.Application {
       val loader = if (justPrint_) new PrintStatuses else new BdbInsertStatuses(bdbArgs)      
       
       loader.load(fileName,progress_)
+      loader.finish
     }
   }
 }
