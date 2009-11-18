@@ -120,7 +120,7 @@ class TwitStoreBDB {
   // in order to add this secondary index,
   // we need to evolve the class in BDB parlance
   // and assign a higher version
-  // @SecondaryKey{val relate=MANY_TO_ONE}
+  @SecondaryKey(relate=MANY_TO_ONE)
   var time: java.util.Date = null // DateTime not persistent
   var text: String = null
   @SecondaryKey(relate=MANY_TO_ONE)
@@ -260,7 +260,8 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
     }
   }
   
-  def insertUserTwit(ut: UserTwit): Unit = {
+  def insertUserTwit(ut: UserTwit, 
+      updateUser: Boolean = false): Unit = {
     import System.err
     
     val UserTwit(user,twit) = ut
@@ -272,8 +273,10 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
 
       // txnBegin
       t put twit // will cause exception if present and rollback
-      val u = UserBDB(uid)
-      u.updateUserForTwit(ut)
+      if (updateUser) {
+        val u = UserBDB(uid)
+        u.updateUserForTwit(ut)
+      }
       txnCommit
     } catch {
       case e => {
@@ -297,7 +300,7 @@ class TwitterBDB(bdbArgs: BdbArgs) extends BdbStore(bdbArgs) with TwitterDB {
   }
   
   val subParams = SubParams(TwitBDB,UserBDB,txnBegin _,txnCommit _,txnRollback _)
-  def insertUserTwitB = insertUserTwitCurry(subParams)(_)
+  def insertUserTwitB = insertUserTwitCurry(subParams)(_,_)
 
   def allUserStatsList:     List[UserStats] = cursorMap(userPrimaryIndex.entities)(_.toUserStats)
   def allUserStatsStream: Stream[UserStats] = cursorStream(userPrimaryIndex.entities) map (_.toUserStats)

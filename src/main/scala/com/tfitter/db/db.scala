@@ -263,7 +263,8 @@ trait TwitterDB {
     
     
   // curry make/txn params
-  def insertUserTwitCurry(subParams: SubParams)(ut: UserTwit): Unit = {
+  def insertUserTwitCurry(subParams: SubParams)(ut: UserTwit,
+      updateUser: Boolean = false): Unit = {
     import System.err
     
     val SubParams(makeTwit,makeUser,txnBegin,txnCommit,txnRollback) = subParams
@@ -277,8 +278,10 @@ trait TwitterDB {
 
       txnBegin
       t put twit // will cause exception if present and rollback
-      val u = makeUser(uid) // UserPG(uid)
-      u.updateUserForTwit(ut)
+      if (updateUser) {
+        val u = makeUser(uid) // UserPG(uid)
+        u.updateUserForTwit(ut)
+      }
       txnCommit
     } catch {
       case e => {
@@ -290,7 +293,7 @@ trait TwitterDB {
   }  
 
   // let's make a hard-code one too to compare
-  def insertUserTwit(ut: UserTwit)
+  def insertUserTwit(ut: UserTwit, updateUser: Boolean = false)
 
   def allUserStatsList:     List[UserStats]  
   def allUserStatsStream: Stream[UserStats]
