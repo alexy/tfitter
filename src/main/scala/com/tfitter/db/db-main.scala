@@ -8,7 +8,7 @@ import java.io.PrintStream
 
 object Db {
   // simple testing version where inserters just print their inputs
-  def printer: Array[String] => Unit = { args => 
+  def printer(files: Array[String]): Unit = {
 
     val numThreads = Config.numCores
 
@@ -19,7 +19,7 @@ object Db {
     err.println("[this is stderr] Welcome to Twitter Gardenhose JSON Extractor in IDEA")
     // Console.println("this is console")
 
-    val readLines = new ReadLines(args(0),numThreads,showingProgress)
+    val readLines = new ReadLines(files,numThreads,showingProgress)
 
     // before I added type annotation List[Inserter] below,
     // I didn't realize I'm not using a List but get a Range...  added .toList below
@@ -71,7 +71,7 @@ object Db {
     // don't even need ti import java.sql.DriverManager for this,
     // magic -- NB see excatly what it does:
 
-    val readLines = new ReadLines(args.fileName,numThreads,showingProgress)
+    val readLines = new ReadLines(args.files,numThreads,showingProgress)
 
     // before I added type annotation List[Inserter] below,
     // I didn't realize I'm not using a List but get a Range...  added .toList below
@@ -90,7 +90,6 @@ object Db {
 
 
 case class BdbInserterArgs (
-  fileName: String,
   envName: Option[String],
   storeName: Option[String],
   numThreads: Option[Int],
@@ -100,11 +99,11 @@ case class BdbInserterArgs (
   transactional: Option[Boolean],
   deferredWrite: Option[Boolean],
   noSync: Option[Boolean],
-  bdbVerbose: Option[Boolean]
+  bdbVerbose: Option[Boolean],
+  files: Array[String]
   ) {
     override def toString: String = 
-    "fileName:"+fileName+
-    "\n  envName:"+envName+
+    "envName:"+envName+
     ", storeName:"+storeName+
     ", numThreads:"+numThreads+
     ", cacheSize:"+cacheSize+
@@ -113,13 +112,13 @@ case class BdbInserterArgs (
     ", transactional:"+transactional+
     ", deferredWrite:"+deferredWrite+
     ", noSync:"+noSync+
-    ", bdbVerbose:"+bdbVerbose
+    ", bdbVerbose:"+bdbVerbose+
+    "\n  files:"+files.mkString(",")
   }
 
 
 object MainInsertBDB extends optional.Application {
   def main(
-    fileName: String,
     envName: Option[String],
     storeName: Option[String],
     numThreads: Option[Int],
@@ -132,11 +131,11 @@ object MainInsertBDB extends optional.Application {
     progress: Option[Long],
     justPrint: Option[Boolean],
     bdbVerbose: Option[Boolean],
-    actors: Option[Boolean]   
+    actors: Option[Boolean],
+    files: Array[String]   
     ) = {
       
     val args = BdbInserterArgs(
-      fileName,
       envName,
       storeName,
       numThreads,
@@ -146,7 +145,8 @@ object MainInsertBDB extends optional.Application {
       transactional,
       deferredWrite,
       noSync,
-      bdbVerbose
+      bdbVerbose,
+      files
       )
       
     val progress_ : Option[Long] = Some(progress getOrElse 10000)
@@ -159,7 +159,7 @@ object MainInsertBDB extends optional.Application {
     if (actors_) {
       err.println("using actors")
       if (justPrint_) {
-        Db.printer(Array(fileName))      
+        Db.printer(files)      
       } else {    
         Db.inserterBDB(args)
       }
@@ -169,7 +169,7 @@ object MainInsertBDB extends optional.Application {
 
       val loader = if (justPrint_) new PrintStatuses else new BdbInsertStatuses(bdbArgs)      
       
-      loader.load(fileName,progress_)
+      loader.load(files,progress_)
       loader.finish
     }
   }

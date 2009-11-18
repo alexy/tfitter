@@ -2,18 +2,14 @@ package com.tfitter
 
 import System.err
 
-import db.{UserTwit,DBError}
 import org.suffix.util.bdb.{BdbArgs,BdbFlags}
-import db.TwitterBDB // for Berkeley DB backend
-import json.TwitExtract
+import org.suffix.util.input.GlueSources
 
-import java.io.{BufferedReader,InputStreamReader,FileInputStream}
-import scala.io.Source
+import com.tfitter.db.{UserTwit,DBError,TwitterBDB} // for Berkeley DB backend
+import com.tfitter.json.TwitExtract
+
 import scala.actors.Actor
 import scala.actors.Actor._
-
-// the new one handles the leading BZ from command-line bzip2 automatically for us 
-import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream=>Bunzip2InputStream}
 
 case class BadStatus(reason: String) extends Exception(reason)
 
@@ -28,18 +24,12 @@ object Status {
     case _ => ""
   }    
   
-  class ReadLines(fileName: String, numCallers: Int, progress: Boolean) extends Actor {    
+  class ReadLines(files: Array[String], numCallers: Int, progress: Boolean) extends Actor { 
+    
+       
     def act = {
       err.println("ReadLines started, object "+self)
-      // wonder if we need codec on top of the bunziooed char stream
-      val inStream: java.io.InputStream = if (fileName.endsWith(".bz2")) 
-          new Bunzip2InputStream(new FileInputStream(fileName)) // buffered inside!
-        else new FileInputStream(fileName)
-      val source = Source.fromInputStream(inStream)
-      // alternatively, 
-      // val bread = new BufferedReader(new InputStreamReader(inStream, "UTF-8"))
-      // http://viewfromthefringe.blogspot.com/2007/10/making-bufferedreader-iterable.html
-      val lines = source.getLines().zipWithIndex
+      val lines = GlueSources.glueFilesLineNums(files)
       
       var countDown = numCallers
       
@@ -53,8 +43,7 @@ object Status {
                 a ! EndOfInput
                 countDown -= 1
                 if (countDown == 0) {
-                  source.close
-                  inStream.close
+                  // TODO lines.close?
                   err.println("ReadLines exiting, having "+mailboxSize+" messages left.")
                   // Runtime.getRuntime.addShutdownHook(exit)
                   exit

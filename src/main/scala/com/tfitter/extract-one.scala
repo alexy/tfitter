@@ -7,11 +7,7 @@ import org.suffix.util.bdb.{BdbArgs,BdbFlags}
 import db.TwitterBDB // for Berkeley DB backend
 import json.TwitExtract
 
-import java.io.{BufferedReader,InputStreamReader,FileInputStream}
-import scala.io.Source
-import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream=>Bunzip2InputStream}
-
-case class BadStatus(reason: String) extends Exception(reason)
+import org.suffix.util.input.GlueSources
 
 // actorless, single-core
 
@@ -19,32 +15,29 @@ abstract class LoadStatuses {
   
   def doUserTwit(ut: UserTwit): Unit    
   
-  def load(fileName: String, progress: Option[Long]) = {    
-      val inStream: java.io.InputStream = if (fileName.endsWith(".bz2")) 
-          new Bunzip2InputStream(new FileInputStream(fileName)) // buffered inside!
-        else new FileInputStream(fileName)
-      val source = Source.fromInputStream(inStream)
-      val lines = source.getLines().zipWithIndex
-      
-      for (line_num <- lines) {
-          line_num match {
-              case (line,lineNumber) if !line.trim.isEmpty =>
-                try { 
-                    val ut = TwitExtract(line)
+  def load(files: Array[String], progress: Option[Long]) = { 
+  
+    val lines = GlueSources.glueFilesLineNums(files)
+    
+    for (line_num <- lines) {
+      line_num match {
+        case (line,lineNumber) if !line.trim.isEmpty =>
+          try { 
+              val ut = TwitExtract(line)
 
-                    doUserTwit(ut)
+              doUserTwit(ut)
 
-                    progress match {
-                      case Some(n) if lineNumber % n == 0 => err.print('.')
-                      case _ =>
-                    }
-                } catch {
-                  // TODO Now, for delete statuses, we must return None from JSON
-                  case BadStatus(reason) => // err.println("*** BAD STATUS CAUGHT:"+reason+" \nline:"+line)
-                }
-              case _ => // next
+              progress match {
+                case Some(n) if lineNumber % n == 0 => err.print('.')
+                case _ =>
+              }
+          } catch {
+            // TODO Now, for delete statuses, we must return None from JSON
+            case BadStatus(reason) => // err.println("*** BAD STATUS CAUGHT:"+reason+" \nline:"+line)
           }
+        case _ => // next
       }
+    }
   }
   
   def finish: Unit = {} 
