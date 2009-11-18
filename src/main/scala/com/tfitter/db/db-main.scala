@@ -131,10 +131,14 @@ object MainInsertBDB extends optional.Application {
     progress: Option[Long],
     justPrint: Option[Boolean],
     bdbVerbose: Option[Boolean],
-    actors: Option[Boolean],
-    files: Array[String]   
+    actors: Option[Boolean]
     ) = {
-      
+
+    // TODO keep files as List, not Array, 
+    // and change GlueSources param accordingly
+    // getArgs() collects all un-optioned arguments:
+    val files: Array[String] = getArgs().toArray   
+  
     val args = BdbInserterArgs(
       envName,
       storeName,
