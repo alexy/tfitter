@@ -29,7 +29,7 @@ object Status {
        
     def act = {
       err.println("ReadLines started, object "+self)
-      val lines = GlueSources.glueFilesLineNums(files)
+      val lines = GlueSources.glueFilesLineNums(files,progress)
       
       var countDown = numCallers
       

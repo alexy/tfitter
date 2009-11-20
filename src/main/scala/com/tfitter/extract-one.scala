@@ -17,7 +17,7 @@ abstract class LoadStatuses {
   
   def load(files: Array[String], progress: Option[Long]) = { 
   
-    val lines = GlueSources.glueFilesLineNums(files)
+    val lines = GlueSources.glueFilesLineNums(files,progress.nonEmpty)
     
     for (line_num <- lines) {
       line_num match {
